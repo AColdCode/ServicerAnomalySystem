@@ -16,7 +16,6 @@ class ServerGenerator:
     def run(self):
         start_ts = int(time.time()) - Config.TOTAL_POINTS * Config.SAMPLE_INTERVAL_SEC
 
-        # server_generator.py（核心片段）
         for t in range(Config.TOTAL_POINTS):
             ts = start_ts + t * Config.SAMPLE_INTERVAL_SEC
 
