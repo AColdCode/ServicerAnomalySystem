@@ -8,7 +8,11 @@ class TimeSeriesPreprocessor:
     """
 
     def __init__(self):
-        pass
+
+        # 保存归一化参数
+        self.min_dict = {}
+
+        self.max_dict = {}
 
     # =============================
     # 主预处理流程
@@ -103,13 +107,46 @@ class TimeSeriesPreprocessor:
     # =============================
     def normalize(self, df, columns):
 
+        df = df.copy()
+
         for col in columns:
 
             min_val = df[col].min()
 
             max_val = df[col].max()
 
+            self.min_dict[col] = min_val
+
+            self.max_dict[col] = max_val
+
             if max_val - min_val != 0:
+
                 df[col] = (df[col] - min_val) / (max_val - min_val)
+
+            else:
+
+                df[col] = 0
+
+        return df
+
+    # =============================
+    # 反归一化
+    # =============================
+    def inverse_normalize(self, df, columns):
+
+        df = df.copy()
+
+        for col in columns:
+
+            base_col = col.replace("real_", "").replace("real_", "")
+
+            if base_col not in self.min_dict:
+                continue
+
+            min_val = self.min_dict[base_col]
+
+            max_val = self.max_dict[base_col]
+
+            df[col] = df[col] * (max_val - min_val) + min_val
 
         return df

@@ -1,0 +1,34 @@
+import torch
+import os
+
+
+class ModelManager:
+
+    def __init__(self, model_dir="lstm_models"):
+
+        self.model_dir = model_dir
+
+        if not os.path.exists(model_dir):
+
+            os.makedirs(model_dir)
+
+    def save(self, model, name):
+
+        path = os.path.join(self.model_dir, name + ".pth")
+
+        torch.save(model.state_dict(), path)
+
+        print("模型已保存:", path)
+
+    def load(self, model, name):
+
+        path = os.path.join(self.model_dir, name + ".pth")
+
+        model.load_state_dict(torch.load(path))
+
+        model.eval()
+
+        print("模型已加载:", path)
+
+        return model
+    
