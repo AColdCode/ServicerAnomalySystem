@@ -138,7 +138,7 @@ class TimeSeriesPreprocessor:
 
         for col in columns:
 
-            base_col = col.replace("real_", "").replace("real_", "")
+            base_col = col.replace("pred_", "").replace("real_", "")
 
             if base_col not in self.min_dict:
                 continue
