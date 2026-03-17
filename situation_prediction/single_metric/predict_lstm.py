@@ -40,7 +40,7 @@ def main():
 
     saver = ResultSaver()
 
-    saver.save(result, "cpu_lstm_prediction.csv")
+    saver.save(result, "cpu_prediction.csv")
 
 
 if __name__ == "__main__":

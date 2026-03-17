@@ -39,5 +39,5 @@ SERVER_BATCH_SIZE = 2   # 每次训练几个服务器
 # =============================
 
 MODEL_DIR = "outputs/models/"
-PREDICT_DIR = "../../results"
+PREDICT_DIR = "../../results/server01"
 DATA_PATH = "../../data_generator/metrics.db"

@@ -7,7 +7,7 @@ from anomaly_detection.multi_metric.online.online_detector import OnlinePCADetec
 DB_PATH = "../../../data_generator/metrics.db"
 TABLE_NAME = "server_01_metrics"
 
-OUT_CSV = "../../../results/server01_pca_detect.csv"
+OUT_CSV = "../../../results/server01/pca_detect.csv"
 
 
 def load_data():

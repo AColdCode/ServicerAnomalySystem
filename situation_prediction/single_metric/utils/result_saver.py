@@ -3,7 +3,7 @@ import os
 
 class ResultSaver:
 
-    def __init__(self, output_dir="../../results"):
+    def __init__(self, output_dir="../../results/server01/"):
 
         self.output_dir = output_dir
 

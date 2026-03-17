@@ -31,7 +31,7 @@ ApplicationWindow {
             format: "MM-dd hh:mm"
             tickCount: 7
 
-            // ⭐ 初始窗口（非常重要）
+            // 初始窗口（非常重要）
             property int windowMs: sampleIntervalMs * visiblePoints
             min: new Date(Date.now() - windowMs)
             max: new Date(Date.now())
@@ -120,43 +120,6 @@ ApplicationWindow {
         else {
             axisX_.format = "yyyy-MM-dd"
             axisX_.tickCount = 6
-        }
-    }
-
-    // =========================
-    // 用户交互（稳定版）
-    // =========================
-    MouseArea {
-        anchors.fill: parent
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
-        hoverEnabled: true
-
-        property real lastX
-
-        onPressed: function(mouse) {
-            autoScroll = false
-            lastX = mouse.x
-        }
-
-        onPositionChanged: function(mouse) {
-            if (mouse.buttons & Qt.LeftButton) {
-                let dx = mouse.x - lastX
-                chartView.scrollLeft(-dx)
-                lastX = mouse.x
-            }
-        }
-
-        onWheel: function(wheel) {
-            autoScroll = false
-            if (wheel.angleDelta.y > 0)
-                chartView.zoom(1.2)
-            else
-                chartView.zoom(0.8)
-        }
-
-        onDoubleClicked: {
-            autoScroll = true
-            chartView.zoomReset()
         }
     }
 }

@@ -8,6 +8,7 @@ from manage.data_loader import DataLoader
 
 from manage.data_bridge import DataBridge
 from manage.controller import AppController
+from manage.config import *
 
 os.environ["QT_LOGGING_RULES"] = "qt.qml.debug=true"
 
@@ -38,7 +39,7 @@ if not engine.rootObjects():
 # 后台加载线程
 # ===============================
 thread = QThread()
-loader = DataLoader("results/server01_cpu_detect.csv")
+loader = DataLoader(DATA_DIR + "sever01/cpu_usage_detect.csv")
 
 loader.moveToThread(thread)
 

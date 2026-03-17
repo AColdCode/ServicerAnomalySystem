@@ -10,9 +10,9 @@ DB_PATH = "../../data_generator/metrics.db"
 
 TABLE_NAME = "server_01_metrics"
 
-METRIC = "response_time"
+METRIC = "cpu_usage"
 
-OUT_CSV = "../../results/"
+OUT_CSV = "../../results/server01/"
 
 ANOMALY_COLUMN_MAP = {
     "cpu_usage": "cpu_anomaly",
@@ -84,7 +84,7 @@ def main():
         ]
     ]
 
-    outPath = OUT_CSV + "single_" + METRIC + "_detect.csv"
+    outPath = OUT_CSV + METRIC + "_detect.csv"
     result_df.to_csv(outPath, index=False)
 
     print("检测完成")

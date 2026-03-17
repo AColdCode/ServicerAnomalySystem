@@ -3,8 +3,8 @@ import csv
 
 
 class DataLoader(QObject):
-    finished = Signal(list)  # ⭐ 数据加载完成
-    progress = Signal(int)   # （可选）进度
+    finished = Signal(list)  # 数据加载完成
+    progress = Signal(int)   # 进度
 
     def __init__(self, csv_path):
         super().__init__()
