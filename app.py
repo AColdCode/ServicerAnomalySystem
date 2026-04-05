@@ -8,6 +8,7 @@ from PySide6.QtWidgets import QApplication
 from backend.data_manager import DataManager
 from backend.chart_controller import ChartController
 os.environ["QT_LOGGING_RULES"] = "qt.qml.debug=true"
+os.environ["QT_QUICK_CONTROLS_STYLE"] = "Material"
 
 
 def qt_message_handler(mode, context, message):
@@ -29,8 +30,8 @@ def main():
 
     dataManager = DataManager()
 
-    controller = ChartController(dataManager)
-    controller.start()
+    # controller = ChartController(dataManager)
+    # controller.start()
 
     engine.rootContext().setContextProperty(
         "DataManager",
