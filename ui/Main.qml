@@ -6,6 +6,7 @@ import "components"
 import "login"
 import "header"
 import "menu"
+import "modules"
 
 // ApplicationWindow {
 //
@@ -90,18 +91,19 @@ ApplicationWindow {
 
     visible: true
 
-    width: isLogin ? 1920 : 600
-    height: isLogin ? 1080 : 500
+    width: isLogin ? Screen.width : 600
+    height: isLogin ? Screen.height : 500
     minimumWidth: 600
     minimumHeight: 500
 
     property bool isLogin: false
     property string username: ""
     property string role: ""
+    property string m_color: "#F9FAFB"
 
     title: "Server Situation Monitoring System"
 
-    color: "#F9FAFB"
+    color: m_color
 
     header: Top {
         id: top
@@ -120,7 +122,15 @@ ApplicationWindow {
         height: parent.height
     }
 
+    // 主区域
+    SystemManage {
+        id: systemManage
+        visible: isLogin && drawer.currentMenu === index
+        anchors.fill: parent
+        index: 7
+    }
 
+    // 登录注册页面
     LogAndReg {
         id: log_reg
         visible: !isLogin
@@ -131,6 +141,9 @@ ApplicationWindow {
         target: DataManager
 
         function onLoginSuccess(username, role) {
+            if (role === "admin") {
+                DataManager.refreshUsers()
+            }
             root.isLogin = true
             root.username = username
             root.role = role
@@ -148,6 +161,7 @@ ApplicationWindow {
             root.role = ""
             root.x = 432
             root.y = 162
+            drawer.currentMenu = 1
         }
     }
 }

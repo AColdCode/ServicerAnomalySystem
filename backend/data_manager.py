@@ -1,6 +1,7 @@
-from PySide6.QtCore import QObject, Slot, Signal
+from PySide6.QtCore import QObject, Slot, Signal, Property
 from db.auth_manager import AuthManager
 from utils.regular_match import RegularMatch
+from utils.user_model import UserModel
 
 
 class DataManager(QObject):
@@ -8,6 +9,7 @@ class DataManager(QObject):
     dataLoaded = Signal()
     loginSuccess = Signal(str, str)
     logoutSignal = Signal()
+    userModelChanged = Signal()
 
     def __init__(self):
         super().__init__()
@@ -21,6 +23,13 @@ class DataManager(QObject):
         self.current_user = None
 
         self.re = RegularMatch()
+
+        self._userModel = UserModel()
+
+    def getUserModel(self):
+        return self._userModel
+
+    userModel = Property(QObject, getUserModel, notify=userModelChanged)
 
     # ------------------------
     # python内部调用
@@ -103,3 +112,39 @@ class DataManager(QObject):
     def logout(self):
         self.current_user = None
         self.logoutSignal.emit()
+
+    @Slot()
+    def refreshUsers(self):
+        users = self.auth.get_all_users()
+
+        # 防止 NULL
+        for u in users:
+            u["username"] = u.get("username") or ""
+            u["role"] = u.get("role") or ""
+            u["created_at"] = u.get("created_at") or ""
+            u["is_active"] = u.get("is_active") if u.get("is_active") is not None else 0
+            u["parent_admin"] = u.get("parent_admin") or ""
+
+        self._userModel.setUsers(users)
+        self.userModelChanged.emit()
+
+    @Slot(str, str, result=bool)
+    def changeUserRole(self, username, role):
+        name, _role = self.current_user
+        if _role == "user":
+            return False
+        return self.auth.change_user_role(username, role, name)
+
+    @Slot(str, str, result=bool)
+    def changeUserActive(self, username, active):
+        name, role = self.current_user
+        if role == "user":
+            return False
+        return self.auth.change_user_active(username, active, name)
+
+    @Slot(str, result=bool)
+    def deleteUser(self, username):
+        name, role = self.current_user
+        if role == "user":
+            return False
+        return self.auth.delete_user(username, name)

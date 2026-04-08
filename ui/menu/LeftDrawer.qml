@@ -8,6 +8,8 @@ Drawer{
     height: parent.height
     edge: Qt.LeftEdge // 从左侧弹出
 
+    property alias currentMenu: menus.currentIndex
+
     background: Rectangle {
         color: "#F9FAFB"
     }
