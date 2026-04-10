@@ -123,6 +123,20 @@ ApplicationWindow {
     }
 
     // 主区域
+    MainControl {
+        id: dataManage
+        visible: isLogin && drawer.currentMenu === index
+        anchors.fill: parent
+        index: 1
+    }
+
+    DataManage {
+        id: dataManage
+        visible: isLogin && drawer.currentMenu === index
+        anchors.fill: parent
+        index: 6
+    }
+
     SystemManage {
         id: systemManage
         visible: isLogin && drawer.currentMenu === index

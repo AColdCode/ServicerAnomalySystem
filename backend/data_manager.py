@@ -1,7 +1,11 @@
-from PySide6.QtCore import QObject, Slot, Signal, Property
+from PySide6.QtCore import QObject, Slot, Signal, Property, QThread
+
 from db.auth_manager import AuthManager
 from utils.regular_match import RegularMatch
 from utils.user_model import UserModel
+from data_generator.metrics_generator import MetricsGenerator
+from utils.data_gen_worker import DataGenWorker
+from utils.data_del_worker import DataDelWorker
 
 
 class DataManager(QObject):
@@ -10,6 +14,8 @@ class DataManager(QObject):
     loginSuccess = Signal(str, str)
     logoutSignal = Signal()
     userModelChanged = Signal()
+    dataGenerated = Signal(int, int, str, str)
+    dataDeleted = Signal(int, int, str, str)
 
     def __init__(self):
         super().__init__()
@@ -25,6 +31,11 @@ class DataManager(QObject):
         self.re = RegularMatch()
 
         self._userModel = UserModel()
+
+        self.gen = MetricsGenerator()
+        self.worker = None
+        self.genThread = None
+        self.deleteTread = None
 
     def getUserModel(self):
         return self._userModel
@@ -148,3 +159,60 @@ class DataManager(QObject):
         if role == "user":
             return False
         return self.auth.delete_user(username, name)
+
+    @Slot(int, int, int, str, str)
+    def genData(self, serverCount, intervalCount, anomalyRatio, start, end):
+        params = {
+            "serverCount": serverCount,
+            "intervalCount": intervalCount,
+            "anomalyRatio": anomalyRatio,
+            "start": start,
+            "end": end
+        }
+        self.genThread = QThread()
+        self.worker = DataGenWorker(self.gen, params)
+
+        # 移动到子线程
+        self.worker.moveToThread(self.genThread)
+
+        self.genThread.started.connect(self.worker.run)
+
+        self.worker.finished.connect(self.genThread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.genThread.finished.connect(self.genThread.deleteLater)
+        self.worker.finished.connect(self.genFinished)
+
+        self.genThread.start()
+
+    @Slot()
+    def genFinished(self):
+        server_count, total_rows = self.gen.getDatasetInfo()
+        start, end = self.gen.getTimeRange()
+        self.dataGenerated.emit(server_count, total_rows, start, end)
+
+    @Slot(str, str)
+    def deleteDataset(self, start, end):
+        params = {
+            "start": start,
+            "end": end
+        }
+        self.deleteTread = QThread()
+        self.worker = DataDelWorker(self.gen, params)
+
+        # 移动到子线程
+        self.worker.moveToThread(self.deleteTread)
+
+        self.deleteTread.started.connect(self.worker.run)
+
+        self.worker.finished.connect(self.deleteTread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.deleteTread.finished.connect(self.deleteTread.deleteLater)
+        self.worker.finished.connect(self.delFinished)
+
+        self.deleteTread.start()
+
+    @Slot()
+    def delFinished(self):
+        server_count, total_rows = self.gen.getDatasetInfo()
+        start, end = self.gen.getTimeRange()
+        self.dataDeleted.emit(server_count, total_rows, start, end)
