@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 class MetricsGenerator:
 
-    def __init__(self, db_name="metrics.db"):
+    def __init__(self, db_name="data_generator/metrics.db"):
         self.db_name = db_name
 
     # -----------------------------

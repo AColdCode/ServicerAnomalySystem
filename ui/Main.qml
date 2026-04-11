@@ -124,7 +124,7 @@ ApplicationWindow {
 
     // 主区域
     MainControl {
-        id: dataManage
+        id: mainControl
         visible: isLogin && drawer.currentMenu === index
         anchors.fill: parent
         index: 1

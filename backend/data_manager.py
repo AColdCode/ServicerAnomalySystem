@@ -1,11 +1,15 @@
+from datetime import datetime
 from PySide6.QtCore import QObject, Slot, Signal, Property, QThread
 
 from db.auth_manager import AuthManager
+from utils.detection_worker import DetectionWorker
 from utils.regular_match import RegularMatch
 from utils.user_model import UserModel
 from data_generator.metrics_generator import MetricsGenerator
 from utils.data_gen_worker import DataGenWorker
 from utils.data_del_worker import DataDelWorker
+from data_source.db_reader import DBReader
+from utils.trend_processor import TrendProcessor
 
 
 class DataManager(QObject):
@@ -16,6 +20,11 @@ class DataManager(QObject):
     userModelChanged = Signal()
     dataGenerated = Signal(int, int, str, str)
     dataDeleted = Signal(int, int, str, str)
+    detectUpdated = Signal(int, list)
+    predictUpdated = Signal(int, list)
+    trendUpdated = Signal(int, list, bool, float)
+    normalNumChanged = Signal(int)
+    anomalyNumChanged = Signal(int)
 
     def __init__(self):
         super().__init__()
@@ -36,6 +45,24 @@ class DataManager(QObject):
         self.worker = None
         self.genThread = None
         self.deleteTread = None
+        self.detectThread = None
+
+        self.dbReader = DBReader()
+
+        self.processor = TrendProcessor()
+
+        self.current_table = ""
+        self.detectMetric = 0
+        self.predictMetric = 0
+        self.trendRange = "1h"
+        self.detectRange = "1h"
+        self.predictRange = "1h"
+        self.endTimestamp = 0
+        self.metrics = [
+            "cpu_usage", "response_time", "memory_usage",
+            "disk_usage", "io_read", "io_write",
+            "service_rt", "service_qps"
+        ]
 
     def getUserModel(self):
         return self._userModel
@@ -181,13 +208,23 @@ class DataManager(QObject):
         self.worker.finished.connect(self.worker.deleteLater)
         self.genThread.finished.connect(self.genThread.deleteLater)
         self.worker.finished.connect(self.genFinished)
+        self.worker.finished.connect(self.detect)
 
         self.genThread.start()
 
     @Slot()
     def genFinished(self):
         server_count, total_rows = self.gen.getDatasetInfo()
+        if server_count == 0:
+            return
+
         start, end = self.gen.getTimeRange()
+
+        self.endTimestamp = int(datetime.strptime(end, "%Y/%m/%d %H:%M").timestamp())
+        self.setTable(0)
+        self.setDetectMetric(0)
+        self.setPredictMetric(0)
+
         self.dataGenerated.emit(server_count, total_rows, start, end)
 
     @Slot(str, str)
@@ -214,5 +251,92 @@ class DataManager(QObject):
     @Slot()
     def delFinished(self):
         server_count, total_rows = self.gen.getDatasetInfo()
+        if server_count == 0:
+            return
+
         start, end = self.gen.getTimeRange()
+        self.endTimestamp = int(datetime.strptime(end, "%Y/%m/%d %H:%M").timestamp())
+        self.update_trend()
+
         self.dataDeleted.emit(server_count, total_rows, start, end)
+
+    @Slot()
+    def detect(self):
+        self.worker = DetectionWorker(self.dbReader)
+
+        self.worker.progress.connect(lambda msg: print(msg))
+        self.worker.finished.connect(self.detectFinished)
+
+        self.worker.start()
+
+    @Slot()
+    def detectFinished(self):
+        pass
+
+    @Slot(str)
+    def setDetectMetric(self, metric):
+        self.detectMetric = metric
+
+    @Slot(str)
+    def setPredictMetric(self, metric):
+        self.predictMetric = metric
+
+    @Slot(str)
+    def setTrendRange(self, r):
+        self.trendRange = r
+        self.update_trend()
+
+    @Slot(str)
+    def setDetectRange(self, r):
+        self.detectRange = r
+
+    @Slot(str)
+    def setPredictRange(self, r):
+        self.predictRange = r
+
+    @Slot(int)
+    def setTable(self, tableIndex):
+        tableIndex += 1
+        self.current_table = f"server_{tableIndex:02d}_metrics"
+        self.update_trend()
+
+    @Slot()
+    def update_trend(self):
+        if self.current_table == "":
+            return
+        index = 0
+        normalNum = 0
+        anomalyNum = 0
+        for metric in self.metrics:
+            range_seconds = {
+                "1h": 3600,
+                "6h": 21600,
+                "1d": 86400,
+                "7d": 604800
+            }
+
+            window = range_seconds.get(self.trendRange, 3600)
+            start_timestamp = self.endTimestamp - window
+            timestamps, values, detect_anomalies, real_anomalies = self.dbReader.fetch_metric(
+                self.current_table,
+                metric,
+                start_timestamp,
+                self.endTimestamp
+            )
+
+            if 1 in detect_anomalies:
+                isAnomaly = True
+            else:
+                isAnomaly = False
+                normalNum += 1
+
+            if not timestamps:
+                return
+
+            trend = self.processor.generate_trend(timestamps, values, real_anomalies, self.trendRange)
+            value = round(values[-1], 3)
+            self.trendUpdated.emit(index, trend, isAnomaly, value)
+            anomalyNum += detect_anomalies.count(1)
+            index += 1
+        self.normalNumChanged.emit(normalNum)
+        self.anomalyNumChanged.emit(anomalyNum)

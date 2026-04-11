@@ -2,7 +2,7 @@ import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
 
-import "dataManage"
+import "mainControl"
 
 ScrollView {
     id: mainControl
@@ -18,19 +18,21 @@ ScrollView {
         ColumnLayout {
             anchors.fill: parent
 
-            Text {
-                Layout.leftMargin: 20
-                Layout.topMargin: 20
-                text: "主控台"
-                font.pixelSize: 30
-                color: "black"
+            TopControl {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 100
             }
 
-            Text {
+            GlobalState {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 120
                 Layout.leftMargin: 20
-                text: "系统运行状态总览"
-                font.pixelSize: 20
-                color: "grey"
+                Layout.rightMargin: 20
+            }
+
+            VarsIndicators {
+                Layout.fillWidth: true
+                Layout.fillHeight: true
             }
 
             Item {
