@@ -14,13 +14,12 @@ from utils.trend_processor import TrendProcessor
 
 class DataManager(QObject):
     # 信号
-    dataLoaded = Signal()
     loginSuccess = Signal(str, str)
     logoutSignal = Signal()
     userModelChanged = Signal()
     dataGenerated = Signal(int, int, str, str)
     dataDeleted = Signal(int, int, str, str)
-    detectUpdated = Signal(int, list)
+    singleDetectUpdated = Signal(int, list, list, list, float)
     predictUpdated = Signal(int, list)
     trendUpdated = Signal(int, list, bool, float)
     normalNumChanged = Signal(int)
@@ -28,12 +27,6 @@ class DataManager(QObject):
 
     def __init__(self):
         super().__init__()
-
-        self.single_detect = []
-        self.multi_detect = []
-        self.single_predict = []
-        self.multi_predict = []
-
         self.auth = AuthManager()
         self.current_user = None
 
@@ -56,6 +49,7 @@ class DataManager(QObject):
         self.predictMetric = 0
         self.trendRange = "1h"
         self.detectRange = "1h"
+        self.multiDetectRange = "1h"
         self.predictRange = "1h"
         self.endTimestamp = 0
         self.metrics = [
@@ -68,25 +62,6 @@ class DataManager(QObject):
         return self._userModel
 
     userModel = Property(QObject, getUserModel, notify=userModelChanged)
-
-    # ------------------------
-    # python内部调用
-    # ------------------------
-
-    def setSingleDetect(self, d):
-        self.single_detect = d
-
-    def setMultiDetect(self, d):
-        self.multi_detect = d
-
-    def setSinglePredict(self, d):
-        self.single_predict = d
-
-    def setMultiPredict(self, d):
-        self.multi_predict = d
-
-    def notifyLoaded(self):
-        self.dataLoaded.emit()
 
     # ------------------------
     # QML接口
@@ -257,6 +232,7 @@ class DataManager(QObject):
         start, end = self.gen.getTimeRange()
         self.endTimestamp = int(datetime.strptime(end, "%Y/%m/%d %H:%M").timestamp())
         self.update_trend()
+        self.get_range_data()
 
         self.dataDeleted.emit(server_count, total_rows, start, end)
 
@@ -273,9 +249,10 @@ class DataManager(QObject):
     def detectFinished(self):
         pass
 
-    @Slot(str)
+    @Slot(int)
     def setDetectMetric(self, metric):
         self.detectMetric = metric
+        self.get_range_data()
 
     @Slot(str)
     def setPredictMetric(self, metric):
@@ -289,6 +266,11 @@ class DataManager(QObject):
     @Slot(str)
     def setDetectRange(self, r):
         self.detectRange = r
+        self.get_range_data()
+
+    @Slot(str)
+    def setMultiDetectRange(self, r):
+        self.multiDetectRange = r
 
     @Slot(str)
     def setPredictRange(self, r):
@@ -299,6 +281,7 @@ class DataManager(QObject):
         tableIndex += 1
         self.current_table = f"server_{tableIndex:02d}_metrics"
         self.update_trend()
+        self.get_range_data()
 
     @Slot()
     def update_trend(self):
@@ -334,9 +317,51 @@ class DataManager(QObject):
                 return
 
             trend = self.processor.generate_trend(timestamps, values, real_anomalies, self.trendRange)
-            value = round(values[-1], 3)
+            value = round(values[-1], 4)
             self.trendUpdated.emit(index, trend, isAnomaly, value)
             anomalyNum += detect_anomalies.count(1)
             index += 1
         self.normalNumChanged.emit(normalNum)
         self.anomalyNumChanged.emit(anomalyNum)
+
+    @Slot()
+    def get_range_data(self):
+        if self.current_table == "":
+            return
+        now = self.endTimestamp
+        start = 0
+        bucket = 0
+
+        if self.detectRange == "1h":
+            start = now - 3600
+            bucket = 300
+
+        elif self.detectRange == "6h":
+            start = now - 3600 * 6
+            bucket = 600
+
+        elif self.detectRange == "1d":
+            start = now - 3600 * 24
+            bucket = 1800
+
+        elif self.detectRange == "7d":
+            start = now - 3600 * 24 * 7
+            bucket = 7200
+
+        timestamps, values, detect_anomalies, real_anomalies = self.dbReader.fetch_metric(self.current_table,
+                                                                                          self.metrics[
+                                                                                              self.detectMetric], start,
+                                                                                          now)
+
+        # 聚合
+        new_ts, new_vals, new_anomalies = self.processor.aggregate(timestamps, values, detect_anomalies, bucket)
+
+        # 计算准确率
+        accCount = 0
+        for i in range(len(detect_anomalies)):
+            if detect_anomalies[i] == real_anomalies[i]:
+                accCount += 1
+        accuracy = accCount / len(detect_anomalies) * 100
+        accuracy = round(accuracy, 2)
+
+        self.singleDetectUpdated.emit(self.detectMetric, new_ts, new_vals, new_anomalies, accuracy)

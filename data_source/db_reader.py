@@ -50,7 +50,27 @@ class DBReader:
 
         conn.close()
 
-        return tables["name"].tolist()
+        return sorted(tables["name"].tolist())
+
+    def get_latest_timestamp(self, table_name=None):
+        conn = self.get_connection()
+        cur = conn.cursor()
+
+        if table_name:
+            cur.execute(f"SELECT MAX(timestamp) FROM {table_name}")
+            row = cur.fetchone()
+            conn.close()
+            return int(row[0]) if row and row[0] is not None else 0
+
+        latest = 0
+        for table in self.get_server_tables():
+            cur.execute(f"SELECT MAX(timestamp) FROM {table}")
+            row = cur.fetchone()
+            if row and row[0] is not None:
+                latest = max(latest, int(row[0]))
+
+        conn.close()
+        return latest
 
     def read_server_metrics(self, table_name):
         conn = self.get_connection()

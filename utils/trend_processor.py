@@ -131,3 +131,43 @@ class TrendProcessor:
         final = self.downsample(enhanced, max_points=100)
 
         return final
+
+    def aggregate(self, timestamps, values, anomalies, bucket_size):
+        buckets = defaultdict(list)
+
+        for ts, val, an in zip(timestamps, values, anomalies):
+            bucket = int(ts // bucket_size) * bucket_size
+            buckets[bucket].append((val, an))
+
+        new_ts = []
+        new_vals = []
+        new_anomalies = []
+
+        prev_val = None
+
+        for b in sorted(buckets.keys()):
+            items = buckets[b]
+
+            vals = [v for v, _ in items]
+            ans = [a for _, a in items]
+
+            max_v = max(vals)
+            min_v = min(vals)
+
+            if prev_val is None:
+                chosen_val = max_v
+            else:
+                if max_v > prev_val:
+                    chosen_val = max_v
+                else:
+                    chosen_val = min_v
+
+            chosen_anomaly = 1 if any(ans) else 0
+
+            new_ts.append(b)
+            new_vals.append(chosen_val)
+            new_anomalies.append(chosen_anomaly)
+
+            prev_val = chosen_val
+
+        return new_ts, new_vals, new_anomalies
