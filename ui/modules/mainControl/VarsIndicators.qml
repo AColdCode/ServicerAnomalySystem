@@ -127,17 +127,16 @@ Item {
                         if (v > maxVal) maxVal = v
                     }
 
-                    // 防止 max=min 导致图表崩
                     if (minVal === maxVal) {
                         minVal -= 1
                         maxVal += 1
                     }
 
-                    // 加一点 padding（非常关键，不然贴边）
                     var padding = (maxVal - minVal) * 0.1
 
                     cpuUsage.minY = minVal - padding
                     cpuUsage.maxY = maxVal + padding
+                    cpuUsage.maxX = trend.length - 1
                 }
             } else if (index === 1) {
                 responseTime.series.clear()
@@ -154,17 +153,16 @@ Item {
                         if (v > maxVal) maxVal = v
                     }
 
-                    // 防止 max=min 导致图表崩
                     if (minVal === maxVal) {
                         minVal -= 1
                         maxVal += 1
                     }
 
-                    // 加一点 padding（非常关键，不然贴边）
                     var padding = (maxVal - minVal) * 0.1
 
                     responseTime.minY = minVal - padding
                     responseTime.maxY = maxVal + padding
+                    responseTime.maxX = trend.length - 1
                 }
             } else if (index === 2) {
                 memoryUsage.series.clear()
@@ -181,17 +179,16 @@ Item {
                         if (v > maxVal) maxVal = v
                     }
 
-                    // 防止 max=min 导致图表崩
                     if (minVal === maxVal) {
                         minVal -= 1
                         maxVal += 1
                     }
 
-                    // 加一点 padding（非常关键，不然贴边）
                     var padding = (maxVal - minVal) * 0.1
 
                     memoryUsage.minY = minVal - padding
                     memoryUsage.maxY = maxVal + padding
+                    memoryUsage.maxX = trend.length - 1
                 }
             } else if (index === 3) {
                 diskUsage.series.clear()
@@ -208,17 +205,16 @@ Item {
                         if (v > maxVal) maxVal = v
                     }
 
-                    // 防止 max=min 导致图表崩
                     if (minVal === maxVal) {
                         minVal -= 1
                         maxVal += 1
                     }
 
-                    // 加一点 padding（非常关键，不然贴边）
                     var padding = (maxVal - minVal) * 0.1
 
                     diskUsage.minY = minVal - padding
                     diskUsage.maxY = maxVal + padding
+                    diskUsage.maxX = trend.length - 1
                 }
             } else if (index === 4) {
                 diskRead.series.clear()
@@ -235,17 +231,16 @@ Item {
                         if (v > maxVal) maxVal = v
                     }
 
-                    // 防止 max=min 导致图表崩
                     if (minVal === maxVal) {
                         minVal -= 1
                         maxVal += 1
                     }
 
-                    // 加一点 padding（非常关键，不然贴边）
                     var padding = (maxVal - minVal) * 0.1
 
                     diskRead.minY = minVal - padding
                     diskRead.maxY = maxVal + padding
+                    diskRead.maxX = trend.length - 1
                 }
             } else if (index === 5) {
                 diskWrite.series.clear()
@@ -262,17 +257,16 @@ Item {
                         if (v > maxVal) maxVal = v
                     }
 
-                    // 防止 max=min 导致图表崩
                     if (minVal === maxVal) {
                         minVal -= 1
                         maxVal += 1
                     }
 
-                    // 加一点 padding（非常关键，不然贴边）
                     var padding = (maxVal - minVal) * 0.1
 
                     diskWrite.minY = minVal - padding
                     diskWrite.maxY = maxVal + padding
+                    diskWrite.maxX = trend.length - 1
                 }
             } else if (index === 6) {
                 serverResponseTime.series.clear()
@@ -289,17 +283,16 @@ Item {
                         if (v > maxVal) maxVal = v
                     }
 
-                    // 防止 max=min 导致图表崩
                     if (minVal === maxVal) {
                         minVal -= 1
                         maxVal += 1
                     }
 
-                    // 加一点 padding（非常关键，不然贴边）
                     var padding = (maxVal - minVal) * 0.1
 
                     serverResponseTime.minY = minVal - padding
                     serverResponseTime.maxY = maxVal + padding
+                    serverResponseTime.maxX = trend.length - 1
                 }
             } else if (index === 7) {
                 serverQPS.series.clear()
@@ -316,17 +309,16 @@ Item {
                         if (v > maxVal) maxVal = v
                     }
 
-                    // 防止 max=min 导致图表崩
                     if (minVal === maxVal) {
                         minVal -= 1
                         maxVal += 1
                     }
 
-                    // 加一点 padding（非常关键，不然贴边）
                     var padding = (maxVal - minVal) * 0.1
 
                     serverQPS.minY = minVal - padding
                     serverQPS.maxY = maxVal + padding
+                    serverQPS.maxX = trend.length - 1
                 }
             }
         }

@@ -5,11 +5,14 @@ from db.auth_manager import AuthManager
 from utils.detection_worker import DetectionWorker
 from utils.regular_match import RegularMatch
 from utils.user_model import UserModel
+from utils.anomaly_model import AnomalyModel
 from data_generator.metrics_generator import MetricsGenerator
 from utils.data_gen_worker import DataGenWorker
 from utils.data_del_worker import DataDelWorker
 from data_source.db_reader import DBReader
+from data_source.db_writer import DBWriter
 from utils.trend_processor import TrendProcessor
+from utils.mdetection_worker import MDetectionWorker
 
 
 class DataManager(QObject):
@@ -17,13 +20,17 @@ class DataManager(QObject):
     loginSuccess = Signal(str, str)
     logoutSignal = Signal()
     userModelChanged = Signal()
+    anomalyModelChanged = Signal()
     dataGenerated = Signal(int, int, str, str)
     dataDeleted = Signal(int, int, str, str)
     singleDetectUpdated = Signal(int, list, list, list, float)
+    multiDetectUpdated = Signal(int, list, list, list)
     predictUpdated = Signal(int, list)
     trendUpdated = Signal(int, list, bool, float)
     normalNumChanged = Signal(int)
     anomalyNumChanged = Signal(int)
+    updateMaxMin = Signal(float, float)
+    anomalyAccChanged = Signal(float)
 
     def __init__(self):
         super().__init__()
@@ -33,19 +40,22 @@ class DataManager(QObject):
         self.re = RegularMatch()
 
         self._userModel = UserModel()
+        self._anomalyModel = AnomalyModel()
 
         self.gen = MetricsGenerator()
         self.worker = None
+        self.mWorker = None
         self.genThread = None
         self.deleteTread = None
-        self.detectThread = None
 
         self.dbReader = DBReader()
+        self.dbWriter = DBWriter()
 
         self.processor = TrendProcessor()
 
         self.current_table = ""
         self.detectMetric = 0
+        self.multiDetectMetrics = []
         self.predictMetric = 0
         self.trendRange = "1h"
         self.detectRange = "1h"
@@ -57,38 +67,22 @@ class DataManager(QObject):
             "disk_usage", "io_read", "io_write",
             "service_rt", "service_qps"
         ]
+        self.minY = 0.0
+        self.maxY = 0.0
 
     def getUserModel(self):
         return self._userModel
 
     userModel = Property(QObject, getUserModel, notify=userModelChanged)
 
+    def getAnomalyModel(self):
+        return self._anomalyModel
+
+    anomalyModel = Property(QObject, getAnomalyModel, notify=anomalyModelChanged)
+
     # ------------------------
     # QML接口
     # ------------------------
-
-    @Slot(str, result="QVariantList")
-    def getSingle(self, mode):
-
-        if mode == "detect":
-            return self.single_detect
-
-        if mode == "predict":
-            return self.single_predict
-
-        return []
-
-    @Slot(str, result="QVariantList")
-    def getMulti(self, mode):
-
-        if mode == "detect":
-            return self.multi_detect
-
-        if mode == "predict":
-            return self.multi_predict
-
-        return []
-
     @Slot(str, str, result=str)
     def login(self, username, password):
         role = self.auth.login(username, password)
@@ -141,6 +135,23 @@ class DataManager(QObject):
         self._userModel.setUsers(users)
         self.userModelChanged.emit()
 
+    @Slot()
+    def refreshAnomalyData(self):
+        range_seconds = {
+            "1h": 3600,
+            "6h": 21600,
+            "1d": 86400,
+            "7d": 604800
+        }
+
+        window = range_seconds.get(self.multiDetectRange, 3600)
+        start_timestamp = self.endTimestamp - window
+        res = self.dbReader.read_multi_anomaly_results(self.current_table, self.metrics,
+                                                       start_timestamp, self.endTimestamp)
+        self._anomalyModel.setDataList(res["data"])
+        self.anomalyModelChanged.emit()
+        self.anomalyAccChanged.emit(res["accuracy"] * 100)
+
     @Slot(str, str, result=bool)
     def changeUserRole(self, username, role):
         name, _role = self.current_user
@@ -184,6 +195,7 @@ class DataManager(QObject):
         self.genThread.finished.connect(self.genThread.deleteLater)
         self.worker.finished.connect(self.genFinished)
         self.worker.finished.connect(self.detect)
+        self.worker.finished.connect(self.mDetect)
 
         self.genThread.start()
 
@@ -196,9 +208,10 @@ class DataManager(QObject):
         start, end = self.gen.getTimeRange()
 
         self.endTimestamp = int(datetime.strptime(end, "%Y/%m/%d %H:%M").timestamp())
+        self.detectMetric = 0
+        self.predictMetric = 0
+        self.multiDetectMetrics.append(0)
         self.setTable(0)
-        self.setDetectMetric(0)
-        self.setPredictMetric(0)
 
         self.dataGenerated.emit(server_count, total_rows, start, end)
 
@@ -233,6 +246,7 @@ class DataManager(QObject):
         self.endTimestamp = int(datetime.strptime(end, "%Y/%m/%d %H:%M").timestamp())
         self.update_trend()
         self.get_range_data()
+        self.update_all_mdata()
 
         self.dataDeleted.emit(server_count, total_rows, start, end)
 
@@ -246,13 +260,36 @@ class DataManager(QObject):
         self.worker.start()
 
     @Slot()
+    def mDetect(self):
+        self.mWorker = MDetectionWorker(self.dbReader)
+
+        self.mWorker.progress.connect(lambda msg: print(msg))
+        self.mWorker.finished.connect(self.mDetectFinished)
+
+        self.mWorker.start()
+
+    @Slot()
     def detectFinished(self):
+        pass
+
+    @Slot()
+    def mDetectFinished(self):
         pass
 
     @Slot(int)
     def setDetectMetric(self, metric):
         self.detectMetric = metric
         self.get_range_data()
+
+    @Slot(int)
+    def setMDetectMetric(self, metric):
+        self.multiDetectMetrics.append(metric)
+        self.update_all_mdata()
+
+    @Slot(int)
+    def cancelMDetectMetric(self, metric):
+        self.multiDetectMetrics.remove(metric)
+        self.update_all_mdata()
 
     @Slot(str)
     def setPredictMetric(self, metric):
@@ -271,6 +308,8 @@ class DataManager(QObject):
     @Slot(str)
     def setMultiDetectRange(self, r):
         self.multiDetectRange = r
+        self.update_all_mdata()
+        self.refreshAnomalyData()
 
     @Slot(str)
     def setPredictRange(self, r):
@@ -282,6 +321,7 @@ class DataManager(QObject):
         self.current_table = f"server_{tableIndex:02d}_metrics"
         self.update_trend()
         self.get_range_data()
+        self.update_all_mdata()
 
     @Slot()
     def update_trend(self):
@@ -365,3 +405,50 @@ class DataManager(QObject):
         accuracy = round(accuracy, 2)
 
         self.singleDetectUpdated.emit(self.detectMetric, new_ts, new_vals, new_anomalies, accuracy)
+
+    @Slot(int)
+    def get_mrange_data(self, index):
+        if index > 7 or index < 0:
+            return
+        if self.current_table == "":
+            return
+        now = self.endTimestamp
+        start = 0
+        bucket = 0
+        if self.multiDetectRange == "1h":
+            start = now - 3600
+            bucket = 300
+        elif self.multiDetectRange == "6h":
+            start = now - 3600 * 6
+            bucket = 600
+        elif self.multiDetectRange == "1d":
+            start = now - 3600 * 24
+            bucket = 1800
+        elif self.multiDetectRange == "7d":
+            start = now - 3600 * 24 * 7
+            bucket = 7200
+        timestamps, values, detect_anomalies, real_anomalies = self.dbReader.fetch_metric(self.current_table,
+                                                                                          self.metrics[
+                                                                                              index], start,
+                                                                                          now)
+        new_ts, new_vals, new_anomalies = self.processor.aggregate(timestamps, values, detect_anomalies, bucket)
+        max_val, min_val = max(new_vals), min(new_vals)
+        if self.maxY < max_val:
+            self.maxY = max_val
+        if self.minY > min_val:
+            self.minY = min_val
+        self.multiDetectUpdated.emit(index, new_ts, new_vals, new_anomalies)
+
+    @Slot()
+    def update_all_mdata(self):
+        if self.current_table == "":
+            return
+        self.minY = 100000.0
+        self.maxY = -100000.0
+        for metric in self.multiDetectMetrics:
+            self.get_mrange_data(metric)
+        self.updateMaxMin.emit(self.minY, self.maxY)
+
+    @Slot(int)
+    def markAnomalyHandled(self, timestamp):
+        self.dbWriter.mark_anomaly_handled(self.current_table, timestamp)

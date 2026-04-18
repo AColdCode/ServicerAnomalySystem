@@ -60,6 +60,13 @@ ApplicationWindow {
         index: 2
     }
 
+    MultiDetect {
+        id: multiDetext
+        visible: isLogin && drawer.currentMenu === index
+        anchors.fill: parent
+        index: 3
+    }
+
     DataManage {
         id: dataManage
         visible: isLogin && drawer.currentMenu === index

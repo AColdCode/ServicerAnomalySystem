@@ -1,4 +1,6 @@
-﻿import sqlite3
+﻿import datetime
+import sqlite3
+import numpy as np
 import pandas as pd
 
 
@@ -226,3 +228,105 @@ class DBReader:
             for metric, stat in table_data.items():
                 all_anomalies += stat["detect"]
         return all_anomalies
+
+    def read_multi_anomaly_results(self, table, metrics, start_time, end_time):
+        """
+        :param table:
+        :param metrics:
+        :param start_time:
+        :param end_time:
+        :return:
+                {
+                    "data": [
+                        {
+                            "time": "2026-04-18 12:30",
+                            "score": 0.92,
+                            "is_anomaly": 1,
+                            "is_handled": 0,
+                            "top_metric": "cpu_usage"
+                            "timestamp": 1234567890
+                        }
+                    ],
+                    "accuracy": 0.91
+                }
+        """
+        conn = self.get_connection()
+        cur = conn.cursor()
+
+        # ===== 检查字段是否存在（防止报错）=====
+        columns = self._get_table_columns(table)
+
+        contrib_cols = [f"{m}_contrib" for m in metrics if f"{m}_contrib" in columns]
+
+        base_cols = [
+            "timestamp",
+            "multi_anomaly_score",
+            "multi_detect_anomaly",
+            "is_anomaly"
+        ]
+
+        # 可选字段
+        if "is_handled" in columns:
+            base_cols.append("is_handled")
+        else:
+            base_cols.append("0 as is_handled")
+
+        select_cols = base_cols + contrib_cols
+
+        query = f"""
+        SELECT {",".join(select_cols)}
+        FROM {table}
+        WHERE timestamp BETWEEN ? AND ?
+        ORDER BY timestamp ASC
+        """
+
+        cur.execute(query, (start_time, end_time))
+        rows = cur.fetchall()
+        conn.close()
+
+        result = []
+
+        correct = 0
+        total = 0
+
+        for row in rows:
+            ts = row[0]
+            score = row[1]
+            pred = row[2]
+            real = row[3]
+            handled = row[4]
+
+            contrib_values = row[5:]
+
+            # ===== 时间转换 =====
+            dt = datetime.datetime.fromtimestamp(ts)
+            time_str = dt.strftime("%Y-%m-%d %H:%M")
+
+            # ===== 最大贡献指标 =====
+            if contrib_values and sum(contrib_values) > 0:
+                max_idx = int(np.argmax(contrib_values))
+                top_metric = metrics[max_idx]
+            else:
+                top_metric = None
+
+            result.append({
+                "time": time_str,
+                "score": float(score * 100) if score is not None else 0,
+                "is_anomaly": int(pred),
+                "is_handled": int(handled),
+                "top_metric": top_metric,
+                "timestamp": ts
+            })
+
+            # ===== 准确率 =====
+            if real is not None:
+                total += 1
+                if int(pred) == int(real):
+                    correct += 1
+
+        accuracy = correct / total if total > 0 else 0
+
+        return {
+            "data": result,
+            "accuracy": accuracy
+        }

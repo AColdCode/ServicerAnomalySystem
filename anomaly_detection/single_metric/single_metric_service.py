@@ -42,7 +42,6 @@ class SingleMetricDetectionService:
     # =============================
     def detect(self):
 
-        # timestamps = self.df["timestamp"].astype(int).tolist()
         timestamps = (self.df["timestamp"].astype("int64") // 10 ** 9).tolist()
         values = self.df[self.metric].tolist()
 

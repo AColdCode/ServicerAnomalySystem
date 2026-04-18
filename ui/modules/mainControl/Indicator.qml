@@ -17,6 +17,8 @@ Rectangle {
     property var series: m_series
     property alias minY: axisY.min
     property alias maxY: axisY.max
+    property alias maxX: axisX.max
+    property alias minX: axisX.min
 
     ColumnLayout {
         anchors.fill: parent
