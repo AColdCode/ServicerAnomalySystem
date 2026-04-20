@@ -13,6 +13,8 @@ from data_source.db_reader import DBReader
 from data_source.db_writer import DBWriter
 from utils.trend_processor import TrendProcessor
 from utils.mdetection_worker import MDetectionWorker
+from utils.single_predictor_trainer_worker import SinglePredictorTrainerWorker
+from situation_prediction.single_metric.single_metric_predictor import SingleMetricPredictor
 
 
 class DataManager(QObject):
@@ -25,12 +27,12 @@ class DataManager(QObject):
     dataDeleted = Signal(int, int, str, str)
     singleDetectUpdated = Signal(int, list, list, list, float)
     multiDetectUpdated = Signal(int, list, list, list)
-    predictUpdated = Signal(int, list)
+    singlePredictUpdated = Signal(int, list, list, list, list)
     trendUpdated = Signal(int, list, bool, float)
     normalNumChanged = Signal(int)
     anomalyNumChanged = Signal(int)
     updateMaxMin = Signal(float, float)
-    anomalyAccChanged = Signal(float)
+    anomalyTopChanged = Signal(float, int)
 
     def __init__(self):
         super().__init__()
@@ -43,8 +45,11 @@ class DataManager(QObject):
         self._anomalyModel = AnomalyModel()
 
         self.gen = MetricsGenerator()
+        self.interval_minutes = 5
         self.worker = None
         self.mWorker = None
+        self.stPredWorker = None
+        self.mtPredWorker = None
         self.genThread = None
         self.deleteTread = None
 
@@ -60,7 +65,8 @@ class DataManager(QObject):
         self.trendRange = "1h"
         self.detectRange = "1h"
         self.multiDetectRange = "1h"
-        self.predictRange = "1h"
+        self.predictRange = 1
+        self.mPredictRange = 1
         self.endTimestamp = 0
         self.metrics = [
             "cpu_usage", "response_time", "memory_usage",
@@ -150,7 +156,7 @@ class DataManager(QObject):
                                                        start_timestamp, self.endTimestamp)
         self._anomalyModel.setDataList(res["data"])
         self.anomalyModelChanged.emit()
-        self.anomalyAccChanged.emit(res["accuracy"] * 100)
+        self.anomalyTopChanged.emit(res["accuracy"] * 100, res["anomalyNum"])
 
     @Slot(str, str, result=bool)
     def changeUserRole(self, username, role):
@@ -196,6 +202,7 @@ class DataManager(QObject):
         self.worker.finished.connect(self.genFinished)
         self.worker.finished.connect(self.detect)
         self.worker.finished.connect(self.mDetect)
+        self.worker.finished.connect(self.singlePredictTrainer)
 
         self.genThread.start()
 
@@ -204,7 +211,6 @@ class DataManager(QObject):
         server_count, total_rows = self.gen.getDatasetInfo()
         if server_count == 0:
             return
-
         start, end = self.gen.getTimeRange()
 
         self.endTimestamp = int(datetime.strptime(end, "%Y/%m/%d %H:%M").timestamp())
@@ -269,11 +275,24 @@ class DataManager(QObject):
         self.mWorker.start()
 
     @Slot()
+    def singlePredictTrainer(self):
+        self.stPredWorker = SinglePredictorTrainerWorker(self.dbReader)
+
+        self.stPredWorker.progress.connect(lambda msg: print(msg))
+        self.stPredWorker.finished.connect(self.stPredFinished)
+
+        self.stPredWorker.start()
+
+    @Slot()
     def detectFinished(self):
         pass
 
     @Slot()
     def mDetectFinished(self):
+        pass
+
+    @Slot()
+    def stPredFinished(self):
         pass
 
     @Slot(int)
@@ -291,7 +310,7 @@ class DataManager(QObject):
         self.multiDetectMetrics.remove(metric)
         self.update_all_mdata()
 
-    @Slot(str)
+    @Slot(int)
     def setPredictMetric(self, metric):
         self.predictMetric = metric
 
@@ -311,7 +330,7 @@ class DataManager(QObject):
         self.update_all_mdata()
         self.refreshAnomalyData()
 
-    @Slot(str)
+    @Slot(int)
     def setPredictRange(self, r):
         self.predictRange = r
 
@@ -322,6 +341,7 @@ class DataManager(QObject):
         self.update_trend()
         self.get_range_data()
         self.update_all_mdata()
+        self.refreshAnomalyData()
 
     @Slot()
     def update_trend(self):
@@ -452,3 +472,33 @@ class DataManager(QObject):
     @Slot(int)
     def markAnomalyHandled(self, timestamp):
         self.dbWriter.mark_anomaly_handled(self.current_table, timestamp)
+
+    @Slot()
+    def singlePredict(self):
+        if self.current_table == "":
+            return
+        model = SingleMetricPredictor(self.metrics[self.predictMetric], self.current_table)
+        preValue = model.predict_future(self.predictRange, self.interval_minutes)
+
+        now = self.endTimestamp
+
+        bucket = 0
+        start = now - 3600 * self.predictRange
+
+        if self.predictRange == 1:
+            bucket = 300
+        elif self.predictRange == 6:
+            bucket = 600
+        elif self.predictRange == 24:
+            bucket = 1800
+
+        timestamps, values = self.dbReader.readTimeAndMetric(self.current_table,
+                                                             self.metrics[self.predictMetric], start, now)
+        new_ts, new_vals = self.processor.predictAggregate(timestamps, values, bucket)
+
+        preTimestamps = []
+        for i in range(len(preValue)):
+            preTimestamps.append(now + (i + 1) * self.interval_minutes * 60)
+        new_preTs, new_preVals = self.processor.predictAggregate(preTimestamps, preValue, bucket)
+        new_preVals = [float(x) for x in new_preVals]
+        self.singlePredictUpdated.emit(self.predictMetric, new_ts, new_vals, new_preTs, new_preVals)

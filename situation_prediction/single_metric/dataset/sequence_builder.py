@@ -1,40 +1,56 @@
-import numpy as np
-
+# import numpy as np
+#
+#
+# class SequenceBuilder:
+#     """
+#     构建LSTM训练序列
+#     """
+#
+#     def __init__(self, window_size=20):
+#
+#         self.window_size = window_size
+#
+#     def build(self, series):
+#
+#         values = series.values
+#
+#         X = []
+#         y = []
+#         ts = []
+#
+#         for i in range(len(values) - self.window_size):
+#
+#             window = values[i:i+self.window_size]
+#
+#             target = values[i+self.window_size]
+#
+#             X.append(window)
+#
+#             y.append(target)
+#
+#             ts.append(series.index[i+self.window_size])
+#
+#         X = np.array(X)
+#         y = np.array(y)
+#
+#         # LSTM需要三维输入
+#         X = X.reshape(X.shape[0], X.shape[1], 1)
+#
+#         return X, y, ts
+#
 
 class SequenceBuilder:
-    """
-    构建LSTM训练序列
-    """
 
-    def __init__(self, window_size=20):
-
+    def __init__(self, window_size=30, horizon=12):
         self.window_size = window_size
+        self.horizon = horizon
 
     def build(self, series):
+        X, y, ts = [], [], []
 
-        values = series.values
-
-        X = []
-        y = []
-        ts = []
-
-        for i in range(len(values) - self.window_size):
-
-            window = values[i:i+self.window_size]
-
-            target = values[i+self.window_size]
-
-            X.append(window)
-
-            y.append(target)
-
-            ts.append(series.index[i+self.window_size])
-
-        X = np.array(X)
-        y = np.array(y)
-
-        # LSTM需要三维输入
-        X = X.reshape(X.shape[0], X.shape[1], 1)
+        for i in range(len(series) - self.window_size - self.horizon):
+            X.append(series[i:i+self.window_size])
+            y.append(series[i+self.window_size:i+self.window_size+self.horizon])
+            ts.append(i)
 
         return X, y, ts
-    

@@ -9,6 +9,7 @@ Rectangle {
     width: parent.width
 
     property real acc: 0.0
+    property int num: 0
 
     ColumnLayout {
         anchors.fill: parent
@@ -21,8 +22,8 @@ Rectangle {
             Layout.topMargin: 10
 
             Text {
-                Layout.leftMargin: 10
-                text: "综合异常事件"
+                Layout.leftMargin: 20
+                text: "异常事件数量：" + anomalyList.num
                 font.pixelSize: 20
                 color: "black"
             }
@@ -131,7 +132,7 @@ Rectangle {
                         Text {
                             Layout.preferredWidth: 80
                             text: Number(model.score).toFixed(2)
-                            color: model.score > 80 ? "red" : "black"
+                            color: model.score > 70 ? "red" : "black"
                         }
 
                         // 是否异常
@@ -226,8 +227,9 @@ Rectangle {
 
                 Connections {
                     target: DataManager
-                    function onAnomalyAccChanged(acc) {
+                    function onAnomalyTopChanged(acc, num) {
                         anomalyList.acc = acc
+                        anomalyList.num = num
                     }
                 }
             }

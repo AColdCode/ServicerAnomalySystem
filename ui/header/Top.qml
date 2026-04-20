@@ -72,6 +72,41 @@ ToolBar {
             verticalAlignment: Text.AlignVCenter
         }
 
+        ComboBox {
+            id: selectServer
+            Layout.preferredWidth: 150
+            Layout.preferredHeight: 30
+            Layout.rightMargin: 20
+            Layout.topMargin: 10
+            Layout.bottomMargin: 10
+            font.pixelSize: 20
+            currentIndex: 0
+            model: []
+
+            background: Rectangle {
+                color: "grey"
+                border.color: "black"
+                border.width: 1
+                radius: 4
+            }
+
+            contentItem: Text {
+                text: parent.displayText
+                color: "black"
+                verticalAlignment: Text.AlignVCenter
+                leftPadding: 10
+                font.pixelSize: parent.font.pixelSize
+            }
+
+            onCurrentIndexChanged: {
+                DataManager.setTable(currentIndex)
+            }
+
+            HoverHandler {
+                cursorShape: Qt.PointingHandCursor
+            }
+        }
+
         Rectangle {
             id: userBtn
             Layout.preferredWidth: 40
@@ -134,6 +169,21 @@ ToolBar {
                 firstLetter = firstLetter.toUpperCase()
             }
             top.prefix = firstLetter
+        }
+    }
+
+    Connections {
+        target: DataManager
+        function onDataGenerated(count, total_rows, start, end) {
+            if (count < 1) return
+
+            let list = []
+            for (let i = 1; i <= count; i++) {
+                list.push("服务器" + i)
+            }
+
+            selectServer.model = list
+            selectServer.currentIndex = 0
         }
     }
 }

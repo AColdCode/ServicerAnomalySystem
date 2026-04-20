@@ -1,0 +1,99 @@
+import QtQuick
+import QtQuick.Controls
+import QtQuick.Layouts
+
+import "singlePredict"
+
+ScrollView {
+    id: singlePredict
+    anchors.fill: parent
+
+    property int index: -1
+
+    contentItem: Flickable {
+        id: mainInterface
+        contentWidth: parent.width
+        contentHeight: 800
+
+        ColumnLayout {
+            anchors.fill: parent
+
+            SingleTop {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 100
+            }
+
+            SingleShow {
+                id: singleShow
+                Layout.fillWidth: true
+                Layout.preferredHeight: 600
+                Layout.leftMargin: 20
+                Layout.rightMargin: 20
+            }
+
+            Item {
+                Layout.fillHeight: true
+            }
+        }
+    }
+
+    Connections {
+        target: DataManager
+
+        function onSinglePredictUpdated(index, ts, vs, preTs, preVs) {
+            if (index === 0) {
+                singleShow.metric = "CPU使用率"
+            } else if (index === 1) {
+                singleShow.metric = "CPU响应时间"
+            } else if (index === 2) {
+                singleShow.metric = "内存使用率"
+            } else if (index === 3) {
+                singleShow.metric = "磁盘使用率"
+            } else if (index === 4) {
+                singleShow.metric = "磁盘读吞吐量"
+            } else if (index === 5) {
+                singleShow.metric = "磁盘写吞吐量"
+            } else if (index === 6) {
+                singleShow.metric = "服务响应时间"
+            } else if (index === 7) {
+                singleShow.metric = "服务QPS"
+            }
+
+            singleShow.hSeries.clear()
+            singleShow.pSeries.clear()
+            if (ts.length > 0) {
+                var minVal = vs[0]
+                var maxVal = vs[0]
+                singleShow.hSeries.append(ts[0], vs[0])
+                for (var i = 1; i < ts.length; i++) {
+                    var v = vs[i]
+                    var t = ts[i] * 1000
+                    singleShow.hSeries.append(t, v)
+                    if (v < minVal) minVal = v
+                    if (v > maxVal) maxVal = v
+                }
+
+                singleShow.pSeries.append(ts[ts.length - 1] * 1000, vs[vs.length - 1])
+                for (var j = 0; j < preTs.length; j++) {
+                    var pv = preVs[j]
+                    var pt = preTs[j] * 1000
+                    singleShow.pSeries.append(pt, pv)
+                    if (pv < minVal) minVal = pv
+                    if (pv > maxVal) maxVal = pv
+                }
+
+                if (minVal === maxVal) {
+                    minVal -= 1
+                    maxVal += 1
+                }
+
+                var padding = (maxVal - minVal) * 0.1
+
+                singleShow.minY = minVal - padding
+                singleShow.maxY = maxVal + padding
+                singleShow.minX = new Date(ts[0] * 1000)
+                singleShow.maxX = new Date(preTs[preTs.length - 1] * 1000)
+            }
+        }
+    }
+}

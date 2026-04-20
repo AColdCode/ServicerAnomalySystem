@@ -67,6 +67,13 @@ ApplicationWindow {
         index: 3
     }
 
+    SinglePredict {
+        id: singlePredict
+        visible: isLogin && drawer.currentMenu === index
+        anchors.fill: parent
+        index: 4
+    }
+
     DataManage {
         id: dataManage
         visible: isLogin && drawer.currentMenu === index

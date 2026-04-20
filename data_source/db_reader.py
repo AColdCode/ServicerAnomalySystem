@@ -247,7 +247,8 @@ class DBReader:
                             "timestamp": 1234567890
                         }
                     ],
-                    "accuracy": 0.91
+                    "accuracy": 0.91,
+                    "anomalyNum": 1
                 }
         """
         conn = self.get_connection()
@@ -288,6 +289,7 @@ class DBReader:
 
         correct = 0
         total = 0
+        anomalyNum = 0
 
         for row in rows:
             ts = row[0]
@@ -321,6 +323,7 @@ class DBReader:
             # ===== 准确率 =====
             if real is not None:
                 total += 1
+                anomalyNum += int(pred)
                 if int(pred) == int(real):
                     correct += 1
 
@@ -328,5 +331,31 @@ class DBReader:
 
         return {
             "data": result,
-            "accuracy": accuracy
+            "accuracy": accuracy,
+            "anomalyNum": anomalyNum
         }
+
+    def readTimeAndMetric(self, table, metric, start_time, end_time):
+        conn = self.get_connection()
+        cur = conn.cursor()
+
+        query = f"""
+        SELECT timestamp, {metric}
+        FROM {table}
+        WHERE timestamp BETWEEN ? AND ?
+        ORDER BY timestamp ASC
+        """
+
+        cur.execute(query, (start_time, end_time))
+        rows = cur.fetchall()
+        conn.close()
+
+        timestamps = []
+        values = []
+
+        for ts, val in rows:
+            if val is not None:
+                timestamps.append(ts)
+                values.append(val)
+
+        return timestamps, values
