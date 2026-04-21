@@ -9,15 +9,11 @@ class MetricsGenerator:
     def __init__(self, db_name="data_generator/metrics.db"):
         self.db_name = db_name
 
-    # -----------------------------
     # 时间解析
-    # -----------------------------
     def _parse_time(self, time_str):
         return datetime.strptime(time_str, "%Y/%m/%d %H:%M")
 
-    # -----------------------------
     # 周期函数
-    # -----------------------------
     def _day_cycle(self, t):
         seconds = t.hour * 3600 + t.minute * 60
         return math.sin(2 * math.pi * seconds / 86400)
@@ -28,9 +24,7 @@ class MetricsGenerator:
     def _noise(self, scale):
         return random.uniform(-scale, scale)
 
-    # -----------------------------
     # 业务负载
-    # -----------------------------
     def _generate_load(self, t, capacity):
         base = 60 * capacity
         daily = 25 * self._day_cycle(t)
@@ -39,9 +33,7 @@ class MetricsGenerator:
         load = base + daily + weekly + self._noise(4)
         return max(load, 5)
 
-    # -----------------------------
     # 指标生成
-    # -----------------------------
     def _generate_metrics(self, load, capacity):
         qps = load
 
@@ -57,9 +49,7 @@ class MetricsGenerator:
 
         return cpu, rt, mem, disk, read, write, srt, qps
 
-    # -----------------------------
     # 异常传播
-    # -----------------------------
     def _propagate(self, cpu, rt, mem, disk, read, write, srt, qps, amp, anomaly_type):
 
         flags = [0] * 8
@@ -108,9 +98,7 @@ class MetricsGenerator:
 
         return (cpu, rt, mem, disk, read, write, srt, qps, *flags)
 
-    # -----------------------------
     # 建表
-    # -----------------------------
     def _create_table(self, cur, table):
         cur.execute(f"""
         CREATE TABLE IF NOT EXISTS {table}(
@@ -141,9 +129,7 @@ class MetricsGenerator:
         )
         """)
 
-    # -----------------------------
     # 单服务器生成
-    # -----------------------------
     def _generate_server(self, cur, table, capacity, start, end, interval, anomaly_ratio):
 
         t = start

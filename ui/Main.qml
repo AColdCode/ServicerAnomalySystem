@@ -74,6 +74,13 @@ ApplicationWindow {
         index: 4
     }
 
+    MultiPredict {
+        id: multiPredict
+        visible: isLogin && drawer.currentMenu === index
+        anchors.fill: parent
+        index: 5
+    }
+
     DataManage {
         id: dataManage
         visible: isLogin && drawer.currentMenu === index

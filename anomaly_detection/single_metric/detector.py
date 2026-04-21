@@ -30,9 +30,7 @@ class SingleMetricDetector:
         # 检测结果
         self.results = []
 
-    # =============================
     # 主检测流程
-    # =============================
     def detect(self, timestamps, values):
 
         for i in range(len(values)):

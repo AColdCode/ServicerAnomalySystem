@@ -5,7 +5,7 @@ import QtQuick.Layouts
 import "multiDetect"
 
 ScrollView {
-    id: singleDetect
+    id: multiDetect
     anchors.fill: parent
 
     property int index: -1

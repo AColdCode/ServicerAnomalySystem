@@ -12,9 +12,7 @@ class ThresholdJudge:
 
         self.mad_threshold = DetectorConfig.MAD_THRESHOLD
 
-    # =============================
     # ZScore异常判断
-    # =============================
     def is_zscore_anomaly(self, zscore):
 
         if abs(zscore) > self.z_threshold:
@@ -22,9 +20,7 @@ class ThresholdJudge:
 
         return False
 
-    # =============================
     # MAD异常判断
-    # =============================
     def is_mad_anomaly(self, mad_score):
 
         if mad_score > self.mad_threshold:
@@ -32,9 +28,7 @@ class ThresholdJudge:
 
         return False
 
-    # =============================
     # 综合判断
-    # =============================
     def judge(self, zscore, mad_score):
 
         """

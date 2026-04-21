@@ -25,21 +25,15 @@ class SingleMetricDetectionService:
         self.df = None
         self.results = None
 
-    # =============================
     # 读取数据
-    # =============================
     def load_data(self):
         self.df = self.reader.read_server_metrics(self.table_name)
 
-    # =============================
     # 预处理
-    # =============================
     def preprocess(self):
         self.df = self.processor.process(self.df)
 
-    # =============================
     # 异常检测
-    # =============================
     def detect(self):
 
         timestamps = (self.df["timestamp"].astype("int64") // 10 ** 9).tolist()
@@ -47,9 +41,7 @@ class SingleMetricDetectionService:
 
         self.results = self.detector.detect(timestamps, values)
 
-    # =============================
     # 写入数据库
-    # =============================
     def save_to_db(self):
 
         result_df = pd.DataFrame(self.results)
@@ -70,9 +62,7 @@ class SingleMetricDetectionService:
             column_name
         )
 
-    # =============================
     # 总流程
-    # =============================
     def run(self):
         self.load_data()
         self.preprocess()

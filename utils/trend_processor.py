@@ -59,8 +59,6 @@ class TrendProcessor:
         return new_ts, new_vals, new_anomalies
 
     def predictAggregate(self, timestamps, values, bucket_size):
-        from collections import defaultdict
-
         buckets = defaultdict(list)
 
         for ts, val in zip(timestamps, values):
@@ -92,3 +90,43 @@ class TrendProcessor:
             prev_val = chosen_val
 
         return new_ts, new_vals
+
+    from collections import defaultdict
+
+    def mPredictAggregate(self, timestamps, values_2d, bucket_size):
+        num_metrics = len(values_2d)
+
+        buckets = [defaultdict(list) for _ in range(num_metrics)]
+
+        for idx, ts in enumerate(timestamps):
+            bucket = int(ts // bucket_size) * bucket_size
+            for metric_idx in range(num_metrics):
+                val = values_2d[metric_idx][idx]
+                buckets[metric_idx][bucket].append(val)
+
+        new_ts = []
+        new_vals_2d = [[] for _ in range(num_metrics)]
+
+        sorted_buckets = sorted(buckets[0].keys()) if num_metrics > 0 else []
+
+        prev_vals = [None] * num_metrics
+
+        for b in sorted_buckets:
+            new_ts.append(b)
+
+            for metric_idx in range(num_metrics):
+                vals = buckets[metric_idx][b]
+
+                max_v = max(vals)
+                min_v = min(vals)
+                prev_val = prev_vals[metric_idx]
+
+                if prev_val is None:
+                    chosen_val = max_v
+                else:
+                    chosen_val = max_v if max_v > prev_val else min_v
+
+                new_vals_2d[metric_idx].append(chosen_val)
+                prev_vals[metric_idx] = chosen_val
+
+        return new_ts, new_vals_2d

@@ -1,6 +1,4 @@
 """
-single_metric_detection.predictor
-
 时间序列预测器
 """
 

@@ -14,26 +14,16 @@ class TimeSeriesPreprocessor:
 
         self.max_dict = {}
 
-    # =============================
     # 主预处理流程
-    # =============================
     def process(self, df):
 
         df = self._format_timestamp(df)
 
-        # df = self._sort_by_time(df)
-
         df = self._handle_missing_values(df)
-
-        # df = self._remove_outliers(df)
-
-        # df = self._generate_time_features(df)
 
         return df
 
-    # =============================
     # 时间格式处理
-    # =============================
     def _format_timestamp(self, df):
 
         if "timestamp" in df.columns:
@@ -41,9 +31,7 @@ class TimeSeriesPreprocessor:
 
         return df
 
-    # =============================
     # 按时间排序
-    # =============================
     def _sort_by_time(self, df):
 
         df = df.sort_values("timestamp")
@@ -52,9 +40,7 @@ class TimeSeriesPreprocessor:
 
         return df
 
-    # =============================
     # 缺失值处理
-    # =============================
     def _handle_missing_values(self, df):
 
         # 前向填充
@@ -65,9 +51,7 @@ class TimeSeriesPreprocessor:
 
         return df
 
-    # =============================
     # 异常值过滤
-    # =============================
     def _remove_outliers(self, df):
 
         numeric_cols = df.select_dtypes(include=[np.number]).columns
@@ -87,9 +71,7 @@ class TimeSeriesPreprocessor:
 
         return df
 
-    # =============================
     # 时间特征生成
-    # =============================
     def _generate_time_features(self, df):
 
         df["hour"] = df["timestamp"].dt.hour
@@ -102,9 +84,7 @@ class TimeSeriesPreprocessor:
 
         return df
 
-    # =============================
     # 数据标准化
-    # =============================
     def normalize(self, df, columns):
 
         df = df.copy()
@@ -129,9 +109,7 @@ class TimeSeriesPreprocessor:
 
         return df
 
-    # =============================
     # 反归一化
-    # =============================
     def inverse_normalize(self, df, columns):
 
         df = df.copy()

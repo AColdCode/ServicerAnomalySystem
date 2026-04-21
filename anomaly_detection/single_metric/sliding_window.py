@@ -1,6 +1,4 @@
 """
-single_metric_detection.sliding_window
-
 滑动窗口数据结构
 """
 
@@ -15,11 +13,6 @@ class SlidingWindow:
     def __init__(self, max_size):
         """
         初始化窗口
-
-        Parameters
-        ----------
-        max_size : int
-            窗口最大长度
         """
 
         self.max_size = max_size

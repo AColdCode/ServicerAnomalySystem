@@ -254,7 +254,7 @@ class DBReader:
         conn = self.get_connection()
         cur = conn.cursor()
 
-        # ===== 检查字段是否存在（防止报错）=====
+        # 检查字段是否存在（防止报错）
         columns = self._get_table_columns(table)
 
         contrib_cols = [f"{m}_contrib" for m in metrics if f"{m}_contrib" in columns]
@@ -300,11 +300,11 @@ class DBReader:
 
             contrib_values = row[5:]
 
-            # ===== 时间转换 =====
+            # 时间转换
             dt = datetime.datetime.fromtimestamp(ts)
             time_str = dt.strftime("%Y-%m-%d %H:%M")
 
-            # ===== 最大贡献指标 =====
+            # 最大贡献指标
             if contrib_values and sum(contrib_values) > 0:
                 max_idx = int(np.argmax(contrib_values))
                 top_metric = metrics[max_idx]
@@ -320,7 +320,7 @@ class DBReader:
                 "timestamp": ts
             })
 
-            # ===== 准确率 =====
+            # 准确率
             if real is not None:
                 total += 1
                 anomalyNum += int(pred)
@@ -359,3 +359,36 @@ class DBReader:
                 values.append(val)
 
         return timestamps, values
+
+    def readTimeAndMetrics(self, table, metrics, start_time, end_time):
+        conn = self.get_connection()
+        cur = conn.cursor()
+
+        metrics_str = ', '.join(metrics)
+
+        query = f"""
+        SELECT timestamp, {metrics_str}
+        FROM {table}
+        WHERE timestamp BETWEEN ? AND ?
+        ORDER BY timestamp ASC
+        """
+
+        cur.execute(query, (start_time, end_time))
+        rows = cur.fetchall()
+        conn.close()
+
+        timestamps = []
+        values_2d = [[] for _ in metrics]
+
+        for row in rows:
+            ts = row[0]
+            metric_vals = row[1:]
+
+            if all(v is None for v in metric_vals):
+                continue
+
+            timestamps.append(ts)
+            for i, val in enumerate(metric_vals):
+                values_2d[i].append(val)
+
+        return timestamps, values_2d

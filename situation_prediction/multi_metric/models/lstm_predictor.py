@@ -4,7 +4,7 @@ import torch.nn as nn
 
 class MultiMetricLSTM(nn.Module):
 
-    def __init__(self, input_size, hidden_size, num_layers, pred_len):
+    def __init__(self, input_size, hidden_size, num_layers, pred_len, output_size):
 
         super(MultiMetricLSTM, self).__init__()
 
@@ -19,28 +19,25 @@ class MultiMetricLSTM(nn.Module):
             batch_first=True
         )
 
-        self.fc = nn.Linear(hidden_size, input_size)
+        self.fc = nn.Linear(hidden_size, output_size)
 
     def forward(self, x):
+        batch_size = x.size(0)
 
-        # x shape
-        # [batch, seq_len, features]
+        _, (h, c) = self.lstm(x)
 
-        out, _ = self.lstm(x)
+        decoder_input = torch.zeros(batch_size, 1, self.output_size).to(x.device)
 
-        last_hidden = out[:, -1, :]
-
-        preds = []
-
-        h = last_hidden
+        outputs = []
 
         for _ in range(self.pred_len):
+            out, (h, c) = self.decoder_lstm(decoder_input, (h, c))
 
-            y = self.fc(h)
+            step_out = self.fc(out[:, -1, :])
 
-            preds.append(y)
+            outputs.append(step_out.unsqueeze(1))
 
-        preds = torch.stack(preds, dim=1)
+            decoder_input = step_out.unsqueeze(1)
 
-        return preds
+        return torch.cat(outputs, dim=1)
     

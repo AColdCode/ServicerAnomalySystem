@@ -23,7 +23,7 @@ class SingleMetricPredictorTrainer:
         window_size=30,
         output_steps=12,
         epochs=30,
-        batch_size=64,
+        batch_size=32,
         lr=0.001
     ):
         self.db_path = db_path

@@ -14,7 +14,9 @@ from data_source.db_writer import DBWriter
 from utils.trend_processor import TrendProcessor
 from utils.mdetection_worker import MDetectionWorker
 from utils.single_predictor_trainer_worker import SinglePredictorTrainerWorker
+from utils.multi_predictor_trainer_worker import MultiPredictorTrainerWorker
 from situation_prediction.single_metric.single_metric_predictor import SingleMetricPredictor
+from situation_prediction.multi_metric.multi_metric_predictor import MultiMetricPredictor
 
 
 class DataManager(QObject):
@@ -28,6 +30,7 @@ class DataManager(QObject):
     singleDetectUpdated = Signal(int, list, list, list, float)
     multiDetectUpdated = Signal(int, list, list, list)
     singlePredictUpdated = Signal(int, list, list, list, list)
+    multiPredictUpdated = Signal(list, list, list, list, list, str)
     trendUpdated = Signal(int, list, bool, float)
     normalNumChanged = Signal(int)
     anomalyNumChanged = Signal(int)
@@ -44,6 +47,7 @@ class DataManager(QObject):
         self._userModel = UserModel()
         self._anomalyModel = AnomalyModel()
 
+        self.dbPath = "data_generator/metrics.db"
         self.gen = MetricsGenerator()
         self.interval_minutes = 5
         self.worker = None
@@ -203,6 +207,7 @@ class DataManager(QObject):
         self.worker.finished.connect(self.detect)
         self.worker.finished.connect(self.mDetect)
         self.worker.finished.connect(self.singlePredictTrainer)
+        self.worker.finished.connect(self.multiPredictTrainer)
 
         self.genThread.start()
 
@@ -284,6 +289,15 @@ class DataManager(QObject):
         self.stPredWorker.start()
 
     @Slot()
+    def multiPredictTrainer(self):
+        self.mtPredWorker = MultiPredictorTrainerWorker(self.dbReader)
+
+        self.mtPredWorker.progress.connect(lambda msg: print(msg))
+        self.mtPredWorker.finished.connect(self.mtPredFinished)
+
+        self.mtPredWorker.start()
+
+    @Slot()
     def detectFinished(self):
         pass
 
@@ -293,6 +307,10 @@ class DataManager(QObject):
 
     @Slot()
     def stPredFinished(self):
+        pass
+
+    @Slot()
+    def mtPredFinished(self):
         pass
 
     @Slot(int)
@@ -502,3 +520,34 @@ class DataManager(QObject):
         new_preTs, new_preVals = self.processor.predictAggregate(preTimestamps, preValue, bucket)
         new_preVals = [float(x) for x in new_preVals]
         self.singlePredictUpdated.emit(self.predictMetric, new_ts, new_vals, new_preTs, new_preVals)
+
+    @Slot()
+    def multiPredict(self):
+        if self.current_table == "":
+            return
+        model = MultiMetricPredictor(
+            self.dbPath,
+            self.current_table
+        )
+        preValues, scores, evaluate = model.predict_with_score()
+
+        metrics_df = preValues.drop(columns=['timestamp'])
+        preValues_2d = [metrics_df[col].tolist() for col in metrics_df.columns]
+
+        new_scores = []
+        for _, v in scores.items():
+            new_scores.append(round(float(v), 4))
+
+        now = self.endTimestamp
+        start = now - 3600 * self.predictRange
+        bucket = 300
+
+        timestamps, values_2d = self.dbReader.readTimeAndMetrics(self.current_table,
+                                                                 self.metrics, start, now)
+        new_ts, new_vals_2d = self.processor.mPredictAggregate(timestamps, values_2d, bucket)
+
+        preTimestamps = []
+        for i in range(len(preValues_2d[0])):
+            preTimestamps.append(now + (i + 1) * self.interval_minutes * 60)
+        new_preTs, new_preVals_2d = self.processor.mPredictAggregate(preTimestamps, preValues_2d, bucket)
+        self.multiPredictUpdated.emit(new_ts, new_vals_2d, new_preTs, new_preVals_2d, new_scores, evaluate)

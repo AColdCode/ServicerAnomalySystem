@@ -1,6 +1,4 @@
 """
-single_metric_detection.config
-
 用于存储单指标异常检测的参数配置
 """
 

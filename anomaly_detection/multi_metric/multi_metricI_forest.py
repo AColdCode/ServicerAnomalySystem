@@ -22,9 +22,7 @@ class MultiMetricIForest:
         self.mean = None
         self.std = None
 
-    # =========================
     # 数据构建
-    # =========================
     def _build_feature_matrix(self, df):
         df = df[["timestamp"] + self.metrics].dropna()
 
@@ -33,9 +31,7 @@ class MultiMetricIForest:
 
         return timestamps, X
 
-    # =========================
     # 训练模型
-    # =========================
     def _fit(self, X):
         split = int(len(X) * 0.7)
 
@@ -50,15 +46,12 @@ class MultiMetricIForest:
         )
         self.model.fit(X_scaled)
 
-        # 用“正常数据”统计
         self.mean = np.mean(X_train, axis=0)
         self.std = np.std(X_train, axis=0) + 1e-8
 
         return self.scaler.transform(X)  # 返回全量
 
-    # =========================
     # 异常检测
-    # =========================
     def _predict(self, X_scaled):
         preds = self.model.predict(X_scaled)
         anomalies = np.where(preds == -1, 1, 0)
@@ -76,9 +69,7 @@ class MultiMetricIForest:
 
         return anomalies.tolist(), scores.tolist()
 
-    # =========================
     # 异常贡献计算
-    # =========================
     def _compute_contributions(self, X, anomalies):
         contributions = []
 
@@ -97,9 +88,7 @@ class MultiMetricIForest:
 
         return contributions
 
-    # =========================
     # 单表处理
-    # =========================
     def process_table(self):
         print(f"处理表: {self.table_name}")
 
@@ -118,9 +107,7 @@ class MultiMetricIForest:
 
         contributions = self._compute_contributions(X, anomalies)
 
-        # =========================
         # 写入数据库
-        # =========================
         anomaly_col = "multi_detect_anomaly"
         score_col = "multi_anomaly_score"
 
@@ -154,8 +141,6 @@ class MultiMetricIForest:
 
         return np.hstack([X, diff])
 
-    # =========================
     # 全部表处理
-    # =========================
     def run(self):
         self.process_table()

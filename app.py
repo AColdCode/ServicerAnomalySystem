@@ -23,10 +23,7 @@ def main():
 
     engine = QQmlApplicationEngine()
 
-    # ======================
     # 数据管理器
-    # ======================
-
     dataManager = DataManager()
 
     engine.rootContext().setContextProperty(
@@ -34,10 +31,7 @@ def main():
         dataManager
     )
 
-    # ======================
     # 加载UI
-    # ======================
-
     engine.load("ui/Main.qml")
 
     if not engine.rootObjects():
