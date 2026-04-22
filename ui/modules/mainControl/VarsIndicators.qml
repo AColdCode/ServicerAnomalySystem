@@ -30,7 +30,7 @@ Item {
                 id: responseTime
                 Layout.fillWidth: true
                 Layout.fillHeight: true
-                name: "响应时间"
+                name: "CPU响应时间"
                 unit: "秒"
             }
         }

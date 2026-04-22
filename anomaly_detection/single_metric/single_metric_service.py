@@ -68,3 +68,11 @@ class SingleMetricDetectionService:
         self.preprocess()
         self.detect()
         self.save_to_db()
+
+
+if __name__ == "__main__":
+    db_path = r"D:\Python\pythonProject\ServicerAnomalySystem\data_generator\metrics.db"
+    table = "server_07_metrics"
+    metric = "service_qps"
+    detect = SingleMetricDetectionService(db_path, table, metric)
+    detect.run()

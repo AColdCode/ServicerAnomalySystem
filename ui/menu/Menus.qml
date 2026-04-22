@@ -76,6 +76,7 @@ Rectangle {
         }
 
         MyMenuItem {
+            visible: menus.isAdmin
             Layout.fillWidth: true
             text: "数据管理"
             icon: "../../images/data.svg"

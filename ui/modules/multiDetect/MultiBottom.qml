@@ -15,7 +15,7 @@ Rectangle {
         anchors.fill: parent
         spacing: 10
 
-        // ================= 标题栏 =================
+        // 标题栏
         RowLayout {
             Layout.fillWidth: true
             Layout.preferredHeight: 50
@@ -62,7 +62,7 @@ Rectangle {
             }
         }
 
-        // ================= 表头 =================
+        // 表头
         RowLayout {
             id: tableHeader
             Layout.fillWidth: true
@@ -86,7 +86,7 @@ Rectangle {
             }
         }
 
-        // ================= 列表 =================
+        // 列表
         Rectangle {
             Layout.fillWidth: true
             Layout.preferredHeight: 500
@@ -132,7 +132,7 @@ Rectangle {
                         Text {
                             Layout.preferredWidth: 80
                             text: Number(model.score).toFixed(2)
-                            color: model.score > 70 ? "red" : "black"
+                            color: model.score > 60 ? "red" : "black"
                         }
 
                         // 是否异常
@@ -173,7 +173,7 @@ Rectangle {
 
                         Item { Layout.fillWidth: true }
 
-                        // ===== 操作按钮 =====
+                        // 操作按钮
                         Rectangle {
                             visible: model.is_anomaly === 1 && model.is_handled === 0
                             Layout.preferredWidth: 60

@@ -9,7 +9,6 @@ from backend.data_manager import DataManager
 os.environ["QT_LOGGING_RULES"] = "qt.qml.debug=true"
 os.environ["QT_QUICK_CONTROLS_STYLE"] = "Material"
 
-
 def qt_message_handler(mode, context, message):
     print(f"[QML] {message}")
 

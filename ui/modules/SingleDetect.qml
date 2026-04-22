@@ -42,21 +42,21 @@ ScrollView {
 
         function onSingleDetectUpdated(index, ts, vs, as, acc) {
             if (index === 0) {
-                singleShow.text = "CPU使用率 - 时间序列与异常点"
+                singleShow.text = "CPU使用率"
             } else if (index === 1) {
-                singleShow.text = "CPU响应时间 - 时间序列与异常点"
+                singleShow.text = "CPU响应时间"
             } else if (index === 2) {
-                singleShow.text = "内存使用率 - 时间序列与异常点"
+                singleShow.text = "内存使用率"
             } else if (index === 3) {
-                singleShow.text = "磁盘使用率 - 时间序列与异常点"
+                singleShow.text = "磁盘使用率"
             } else if (index === 4) {
-                singleShow.text = "磁盘读吞吐量 - 时间序列与异常点"
+                singleShow.text = "磁盘读吞吐量"
             } else if (index === 5) {
-                singleShow.text = "磁盘写吞吐量 - 时间序列与异常点"
+                singleShow.text = "磁盘写吞吐量"
             } else if (index === 6) {
-                singleShow.text = "服务响应时间 - 时间序列与异常点"
+                singleShow.text = "服务响应时间"
             } else if (index === 7) {
-                singleShow.text = "服务QPS - 时间序列与异常点"
+                singleShow.text = "服务QPS"
             }
 
             singleShow.acc = acc

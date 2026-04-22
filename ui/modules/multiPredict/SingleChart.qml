@@ -37,8 +37,10 @@ Rectangle {
         }
 
         ChartView {
+            id: chart
             Layout.fillWidth: true
             Layout.fillHeight: true
+            antialiasing: true
 
             LineSeries {
                 name: "历史值"
@@ -63,6 +65,57 @@ Rectangle {
             DateTimeAxis {
                 id: metricAxisX
                 format: "MM-dd hh:mm"
+            }
+
+            HoverHandler {
+                id: hover
+                acceptedDevices: PointerDevice.Mouse
+
+                onHoveredChanged: {
+                    if (!hovered) {
+                        tooltip.visible = false
+                    }
+                }
+
+                onPointChanged: {
+                    chart.handleHover()
+                }
+            }
+
+            function handleHover() {
+                var p = hover.point.position
+
+                var value = chart.mapToValue(p, historSeries)
+                var d = new Date(value.x)
+
+                var result =
+                    (d.getMonth() + 1) + "-" +
+                    d.getDate() + " " +
+                    String(d.getHours()).padStart(2, "0") + ":" +
+                    String(d.getMinutes()).padStart(2, "0")
+                tooltip.text = "时间: " + result + "\n" + singleShow.metricName + ": " + value.y.toFixed(4)
+                tooltip.x = p.x - tooltip.width / 2
+                tooltip.y = p.y + 10
+                tooltip.visible = true
+            }
+
+            Rectangle {
+                id: tooltip
+                visible: false
+                color: "#333333CC"
+                radius: 4
+
+                property string text: ""
+
+                width: textItem.width + 12
+                height: textItem.height + 12
+
+                Text {
+                    id: textItem
+                    text: tooltip.text
+                    anchors.centerIn: parent
+                    color: "white"
+                }
             }
         }
     }

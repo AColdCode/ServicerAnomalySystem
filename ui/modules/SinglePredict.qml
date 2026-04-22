@@ -13,7 +13,7 @@ ScrollView {
     contentItem: Flickable {
         id: mainInterface
         contentWidth: parent.width
-        contentHeight: 800
+        contentHeight: 900
 
         ColumnLayout {
             anchors.fill: parent
@@ -21,6 +21,14 @@ ScrollView {
             SingleTop {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 100
+            }
+
+            Evaluates {
+                id: evaluates
+                Layout.fillWidth: true
+                Layout.preferredHeight: 150
+                Layout.leftMargin: 20
+                Layout.rightMargin: 20
             }
 
             SingleShow {
@@ -40,7 +48,14 @@ ScrollView {
     Connections {
         target: DataManager
 
-        function onSinglePredictUpdated(index, ts, vs, preTs, preVs) {
+        function onSinglePredictUpdated(index, ts, vs, preTs, preVs, status, final_score, risk_intensity, risk_peak, risk_ratio, risk_series) {
+            evaluates.evaluate = status
+            evaluates.final_score = final_score
+            evaluates.risk_intensity = risk_intensity
+            evaluates.risk_peak = risk_peak
+            evaluates.risk_ratio = risk_ratio
+            evaluates.risk_series = risk_series
+
             if (index === 0) {
                 singleShow.metric = "CPU使用率"
             } else if (index === 1) {

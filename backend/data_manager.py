@@ -29,7 +29,7 @@ class DataManager(QObject):
     dataDeleted = Signal(int, int, str, str)
     singleDetectUpdated = Signal(int, list, list, list, float)
     multiDetectUpdated = Signal(int, list, list, list)
-    singlePredictUpdated = Signal(int, list, list, list, list)
+    singlePredictUpdated = Signal(int, list, list, list, list, str, float, float, float, float, list)
     multiPredictUpdated = Signal(list, list, list, list, list, str)
     trendUpdated = Signal(int, list, bool, float)
     normalNumChanged = Signal(int)
@@ -408,31 +408,23 @@ class DataManager(QObject):
             return
         now = self.endTimestamp
         start = 0
-        bucket = 0
 
         if self.detectRange == "1h":
             start = now - 3600
-            bucket = 300
 
         elif self.detectRange == "6h":
             start = now - 3600 * 6
-            bucket = 600
 
         elif self.detectRange == "1d":
             start = now - 3600 * 24
-            bucket = 1800
 
         elif self.detectRange == "7d":
             start = now - 3600 * 24 * 7
-            bucket = 7200
 
         timestamps, values, detect_anomalies, real_anomalies = self.dbReader.fetch_metric(self.current_table,
                                                                                           self.metrics[
                                                                                               self.detectMetric], start,
                                                                                           now)
-
-        # 聚合
-        new_ts, new_vals, new_anomalies = self.processor.aggregate(timestamps, values, detect_anomalies, bucket)
 
         # 计算准确率
         accCount = 0
@@ -442,7 +434,7 @@ class DataManager(QObject):
         accuracy = accCount / len(detect_anomalies) * 100
         accuracy = round(accuracy, 2)
 
-        self.singleDetectUpdated.emit(self.detectMetric, new_ts, new_vals, new_anomalies, accuracy)
+        self.singleDetectUpdated.emit(self.detectMetric, timestamps, values, detect_anomalies, accuracy)
 
     @Slot(int)
     def get_mrange_data(self, index):
@@ -452,30 +444,24 @@ class DataManager(QObject):
             return
         now = self.endTimestamp
         start = 0
-        bucket = 0
         if self.multiDetectRange == "1h":
             start = now - 3600
-            bucket = 300
         elif self.multiDetectRange == "6h":
             start = now - 3600 * 6
-            bucket = 600
         elif self.multiDetectRange == "1d":
             start = now - 3600 * 24
-            bucket = 1800
         elif self.multiDetectRange == "7d":
             start = now - 3600 * 24 * 7
-            bucket = 7200
         timestamps, values, detect_anomalies, real_anomalies = self.dbReader.fetch_metric(self.current_table,
                                                                                           self.metrics[
                                                                                               index], start,
                                                                                           now)
-        new_ts, new_vals, new_anomalies = self.processor.aggregate(timestamps, values, detect_anomalies, bucket)
-        max_val, min_val = max(new_vals), min(new_vals)
+        max_val, min_val = max(values), min(values)
         if self.maxY < max_val:
             self.maxY = max_val
         if self.minY > min_val:
             self.minY = min_val
-        self.multiDetectUpdated.emit(index, new_ts, new_vals, new_anomalies)
+        self.multiDetectUpdated.emit(index, timestamps, values, detect_anomalies)
 
     @Slot()
     def update_all_mdata(self):
@@ -496,30 +482,29 @@ class DataManager(QObject):
         if self.current_table == "":
             return
         model = SingleMetricPredictor(self.metrics[self.predictMetric], self.current_table)
-        preValue = model.predict_future(self.predictRange, self.interval_minutes)
+        preValue, scores, status = model.predict_with_score(self.predictRange, self.interval_minutes)
+
+        final_score = round(float(scores["final_score"]), 4)
+        risk_intensity = round(float(scores["risk_intensity"]), 4)
+        risk_peak = round(float(scores["risk_peak"]), 4)
+        risk_ratio = round(float(scores["risk_ratio"]), 4)
+        risk_series = []
+        for v in scores["risk_series"]:
+            risk_series.append(round(float(v), 4))
 
         now = self.endTimestamp
 
-        bucket = 0
         start = now - 3600 * self.predictRange
-
-        if self.predictRange == 1:
-            bucket = 300
-        elif self.predictRange == 6:
-            bucket = 600
-        elif self.predictRange == 24:
-            bucket = 1800
 
         timestamps, values = self.dbReader.readTimeAndMetric(self.current_table,
                                                              self.metrics[self.predictMetric], start, now)
-        new_ts, new_vals = self.processor.predictAggregate(timestamps, values, bucket)
 
         preTimestamps = []
         for i in range(len(preValue)):
             preTimestamps.append(now + (i + 1) * self.interval_minutes * 60)
-        new_preTs, new_preVals = self.processor.predictAggregate(preTimestamps, preValue, bucket)
-        new_preVals = [float(x) for x in new_preVals]
-        self.singlePredictUpdated.emit(self.predictMetric, new_ts, new_vals, new_preTs, new_preVals)
+        preValue = [float(x) for x in preValue]
+        self.singlePredictUpdated.emit(self.predictMetric, timestamps, values, preTimestamps, preValue,
+                                       status, final_score, risk_intensity, risk_peak, risk_ratio, risk_series)
 
     @Slot()
     def multiPredict(self):
@@ -539,15 +524,12 @@ class DataManager(QObject):
             new_scores.append(round(float(v), 4))
 
         now = self.endTimestamp
-        start = now - 3600 * self.predictRange
-        bucket = 300
+        start = now - 3600
 
         timestamps, values_2d = self.dbReader.readTimeAndMetrics(self.current_table,
                                                                  self.metrics, start, now)
-        new_ts, new_vals_2d = self.processor.mPredictAggregate(timestamps, values_2d, bucket)
 
         preTimestamps = []
         for i in range(len(preValues_2d[0])):
             preTimestamps.append(now + (i + 1) * self.interval_minutes * 60)
-        new_preTs, new_preVals_2d = self.processor.mPredictAggregate(preTimestamps, preValues_2d, bucket)
-        self.multiPredictUpdated.emit(new_ts, new_vals_2d, new_preTs, new_preVals_2d, new_scores, evaluate)
+        self.multiPredictUpdated.emit(timestamps, values_2d, preTimestamps, preValues_2d, new_scores, evaluate)

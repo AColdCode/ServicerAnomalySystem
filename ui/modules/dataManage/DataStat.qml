@@ -12,7 +12,7 @@ Rectangle {
 
     property int serverNum: 0
     property int recordNum: 0
-    property int alarmNum: 0
+    property int interval: 5
     property string startTime: ""
     property string endTime: ""
 
@@ -85,14 +85,14 @@ Rectangle {
 
                 Text {
                     Layout.alignment: Qt.AlignLeft
-                    text: "异常告警数"
+                    text: "数据采样间隔"
                     font.pixelSize: 15
                     color: "#65779A"
                 }
 
                 Text {
                     Layout.alignment: Qt.AlignLeft
-                    text: alarmNum
+                    text: interval + "分钟"
                     font.pixelSize: 30
                     color: "black"
                 }
