@@ -15,7 +15,6 @@ Rectangle {
     property real risk_intensity: 0.0
     property real risk_peak: 0.0
     property real risk_ratio: 0.0
-    property real risk_series: []
 
     ColumnLayout {
         anchors.fill: parent

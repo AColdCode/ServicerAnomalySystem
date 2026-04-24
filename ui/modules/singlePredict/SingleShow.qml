@@ -20,6 +20,11 @@ Rectangle {
     property var hSeries: metricSeries
     property var pSeries: metricPredictSeries
 
+    property double lastTs: 0
+    property var qmlPoints: []
+    property var qmlPrePoints: []
+    property var risk_series: []
+
     ColumnLayout {
     anchors.fill: parent
         spacing: 10
@@ -80,13 +85,12 @@ Rectangle {
                 id: hover
                 acceptedDevices: PointerDevice.Mouse
 
-                onHoveredChanged: {
-                    if (!hovered) {
-                        tooltip.visible = false
-                    }
-                }
-
                 onPointChanged: {
+                    let now = Date.now()
+                    if (now - lastTs < 16) return
+
+                    singleShow.lastTs = now
+
                     chart.handleHover()
                 }
             }
@@ -95,6 +99,10 @@ Rectangle {
                 var p = hover.point.position
 
                 var value = chart.mapToValue(p, metricSeries)
+
+                var vals = getY(value.x)
+                var val = vals[0], risk = vals[1]
+
                 var d = new Date(value.x)
 
                 var result =
@@ -102,39 +110,52 @@ Rectangle {
                     d.getDate() + " " +
                     String(d.getHours()).padStart(2, "0") + ":" +
                     String(d.getMinutes()).padStart(2, "0")
-                tooltip.text = "时间: " + result + "\n" + singleShow.metric + ": " + value.y.toFixed(4)
+                var txt = "时间: " + result + "\n" + singleShow.metric + ": " + val.toFixed(4)
+                if (risk !== 0) {
+                    txt += "\n风险值: " + risk.toFixed(4)
+                }
+                tooltip.text = txt
                 tooltip.x = p.x - tooltip.width / 2
                 tooltip.y = p.y + 10
-                tooltip.visible = true
+            }
 
-                // var nearestIndex = -1
-                // var minDist = 1e12
-                //
-                // for (var i = 0; i < metricSeries.count; i++) {
-                //     var pt = metricSeries.at(i)
-                //     var dx = pt.x - value.x
-                //     var dy = pt.y - value.y
-                //     var dist = dx * dx + dy * dy
-                //
-                //     if (dist < minDist) {
-                //         minDist = dist
-                //         nearestIndex = i
-                //     }
-                // }
-                //
-                // if (nearestIndex >= 0) {
-                //     var pt = metricSeries.at(nearestIndex)
-                //
-                //     tooltip.x = p.x + 10
-                //     tooltip.y = p.y + 10
-                //     tooltip.text = "x: " + pt.x + "\ny: " + pt.y
-                //     tooltip.visible = true
-                // }
+            function getY(x) {
+                let arr = singleShow.qmlPoints
+                let flag = 0
+                if (arr[arr.length - 1].x < x) {
+                    arr = singleShow.qmlPrePoints
+                    flag = 1
+                }
+                let l = 0, r = arr.length - 1
+
+                while (l <= r) {
+                    let m = (l + r) >> 1
+                    if (arr[m].x === x) return arr[m].y
+                    if (arr[m].x < x) l = m + 1
+                    else r = m - 1
+                }
+
+                let val = 0, risk = 0
+                let i = Math.max(1, l)
+                i = Math.min(i, arr.length - 1)
+                let p1 = arr[i - 1]
+                let p2 = arr[i]
+                let k = (p2.y - p1.y) / (p2.x - p1.x)
+                val = p1.y + k * (x - p1.x)
+
+                if (flag) {
+                    let r1 = singleShow.risk_series[i - 1]
+                    let r2 = singleShow.risk_series[i]
+                    let k1 = (r2 - r1) / (p2.x - p1.x)
+                    risk = r1 + k1 * (x - p1.x)
+                }
+
+                return [val, risk]
             }
 
             Rectangle {
                 id: tooltip
-                visible: false
+                visible: hover.hovered
                 color: "#333333CC"
                 radius: 4
 

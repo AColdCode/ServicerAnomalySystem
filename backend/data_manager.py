@@ -164,7 +164,8 @@ class DataManager(QObject):
 
     @Slot(str, str, result=bool)
     def changeUserRole(self, username, role):
-        name, _role = self.current_user
+        name = self.current_user["username"]
+        _role = self.current_user["role"]
         if _role == "user":
             return False
         return self.auth.change_user_role(username, role, name)

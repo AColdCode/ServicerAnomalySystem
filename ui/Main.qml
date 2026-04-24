@@ -24,7 +24,7 @@ ApplicationWindow {
     property string role: ""
     property string m_color: "#F9FAFB"
 
-    title: "Server Situation Monitoring System"
+    title: "大规模服务系统的态势预测与异常检测系统"
 
     color: m_color
 

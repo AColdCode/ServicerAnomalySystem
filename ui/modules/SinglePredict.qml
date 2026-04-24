@@ -54,7 +54,9 @@ ScrollView {
             evaluates.risk_intensity = risk_intensity
             evaluates.risk_peak = risk_peak
             evaluates.risk_ratio = risk_ratio
-            evaluates.risk_series = risk_series
+
+            singleShow.risk_series = risk_series
+            console.log(risk_series.length, preVs.length)
 
             if (index === 0) {
                 singleShow.metric = "CPU使用率"
@@ -79,19 +81,24 @@ ScrollView {
             if (ts.length > 0) {
                 var minVal = vs[0]
                 var maxVal = vs[0]
+
+                singleShow.qmlPoints.push(Qt.point(ts[0], vs[0]))
                 singleShow.hSeries.append(ts[0], vs[0])
                 for (var i = 1; i < ts.length; i++) {
                     var v = vs[i]
                     var t = ts[i] * 1000
+                    singleShow.qmlPoints.push(Qt.point(t, v))
                     singleShow.hSeries.append(t, v)
                     if (v < minVal) minVal = v
                     if (v > maxVal) maxVal = v
                 }
 
+                singleShow.qmlPrePoints.push(Qt.point(ts[ts.length - 1] * 1000, vs[vs.length - 1]))
                 singleShow.pSeries.append(ts[ts.length - 1] * 1000, vs[vs.length - 1])
                 for (var j = 0; j < preTs.length; j++) {
                     var pv = preVs[j]
                     var pt = preTs[j] * 1000
+                    singleShow.qmlPrePoints.push(Qt.point(pt, pv))
                     singleShow.pSeries.append(pt, pv)
                     if (pv < minVal) minVal = pv
                     if (pv > maxVal) maxVal = pv
