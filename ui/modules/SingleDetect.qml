@@ -62,13 +62,15 @@ ScrollView {
             singleShow.acc = acc
             singleShow.series.clear()
             singleShow.anomaly.clear()
+            singleShow.qmlPoints = []
             if (ts.length > 0) {
                 var minVal = vs[0]
                 var maxVal = vs[0]
                 if (as[0] === 1) {
                     singleShow.anomaly.append(ts[0] * 1000, vs[0])
                 }
-                singleShow.series.append(ts[0], vs[0])
+                singleShow.series.append(ts[0] * 1000, vs[0])
+                singleShow.qmlPoints.push(Qt.point(ts[0] * 1000, vs[0]))
                 for (var i = 1; i < ts.length; i++) {
                     var v = vs[i]
                     var t = ts[i] * 1000
@@ -77,6 +79,7 @@ ScrollView {
                         singleShow.anomaly.append(t, v)
                     }
                     singleShow.series.append(t, v)
+                    singleShow.qmlPoints.push(Qt.point(t, v))
                     if (v < minVal) minVal = v
                     if (v > maxVal) maxVal = v
                 }

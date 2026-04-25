@@ -56,7 +56,6 @@ ScrollView {
             evaluates.risk_ratio = risk_ratio
 
             singleShow.risk_series = risk_series
-            console.log(risk_series.length, preVs.length)
 
             if (index === 0) {
                 singleShow.metric = "CPU使用率"
@@ -78,12 +77,14 @@ ScrollView {
 
             singleShow.hSeries.clear()
             singleShow.pSeries.clear()
+            singleShow.qmlPoints = []
+            singleShow.qmlPrePoints = []
             if (ts.length > 0) {
                 var minVal = vs[0]
                 var maxVal = vs[0]
 
-                singleShow.qmlPoints.push(Qt.point(ts[0], vs[0]))
-                singleShow.hSeries.append(ts[0], vs[0])
+                singleShow.qmlPoints.push(Qt.point(ts[0] * 1000, vs[0]))
+                singleShow.hSeries.append(ts[0] * 1000, vs[0])
                 for (var i = 1; i < ts.length; i++) {
                     var v = vs[i]
                     var t = ts[i] * 1000

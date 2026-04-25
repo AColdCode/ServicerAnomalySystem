@@ -21,6 +21,9 @@ Rectangle {
     property real acc: 0.0
     property string text: ""
 
+    property double lastTs: 0
+    property var qmlPoints: []
+
     ColumnLayout {
     anchors.fill: parent
         spacing: 10
@@ -87,13 +90,12 @@ Rectangle {
                 id: hover
                 acceptedDevices: PointerDevice.Mouse
 
-                onHoveredChanged: {
-                    if (!hovered) {
-                        tooltip.visible = false
-                    }
-                }
-
                 onPointChanged: {
+                    let now = Date.now()
+                    if (now - lastTs < 16) return
+
+                    singleShow.lastTs = now
+
                     chart.handleHover()
                 }
             }
@@ -102,6 +104,8 @@ Rectangle {
                 var p = hover.point.position
 
                 var value = chart.mapToValue(p, metricSeries)
+                var val = getY(value.x)
+
                 var d = new Date(value.x)
 
                 var result =
@@ -109,15 +113,34 @@ Rectangle {
                     d.getDate() + " " +
                     String(d.getHours()).padStart(2, "0") + ":" +
                     String(d.getMinutes()).padStart(2, "0")
-                tooltip.text = "时间: " + result + "\n" + singleShow.text + ": " + value.y.toFixed(4)
+                tooltip.text = "时间: " + result + "\n" + singleShow.text + ": " + val.toFixed(4)
                 tooltip.x = p.x - tooltip.width / 2
                 tooltip.y = p.y + 10
-                tooltip.visible = true
+            }
+
+            function getY(x) {
+                let arr = singleShow.qmlPoints
+                let l = 0, r = arr.length - 1
+
+                while (l <= r) {
+                    let m = (l + r) >> 1
+                    if (arr[m].x === x) return arr[m].y
+                    if (arr[m].x < x) l = m + 1
+                    else r = m - 1
+                }
+
+                let i = Math.max(1, l)
+                i = Math.min(i, arr.length - 1)
+                let p1 = arr[i - 1]
+                let p2 = arr[i]
+                let k = (p2.y - p1.y) / (p2.x - p1.x)
+
+                return p1.y + k * (x - p1.x)
             }
 
             Rectangle {
                 id: tooltip
-                visible: false
+                visible: hover.hovered
                 color: "#333333CC"
                 radius: 4
 
