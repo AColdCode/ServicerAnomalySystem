@@ -96,21 +96,21 @@ Rectangle {
             }
 
             function handleHover() {
-                var p = hover.point.position
+                let p = hover.point.position
 
-                var value = chart.mapToValue(p, metricSeries)
+                let value = chart.mapToValue(p, metricSeries)
 
-                var vals = getY(value.x)
-                var val = vals[0], risk = vals[1]
+                let vals = getY(value.x)
+                let val = vals[0], risk = vals[1]
 
-                var d = new Date(value.x)
+                let d = new Date(value.x)
 
-                var result =
+                let result =
                     (d.getMonth() + 1) + "-" +
                     d.getDate() + " " +
                     String(d.getHours()).padStart(2, "0") + ":" +
                     String(d.getMinutes()).padStart(2, "0")
-                var txt = "时间: " + result + "\n" + singleShow.metric + ": " + val.toFixed(4)
+                let txt = "时间: " + result + "\n" + singleShow.metric + ": " + val.toFixed(4)
                 if (risk !== 0) {
                     txt += "\n风险值: " + risk.toFixed(4)
                 }

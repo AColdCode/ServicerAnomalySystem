@@ -27,6 +27,17 @@ Rectangle {
     property var qpsSeries: m_qpsSeries
     property var multiAnomaly: anomaly
 
+    property double lastTs: 0
+
+    property var cpuPoints: []
+    property var rtPoints: []
+    property var memPoints: []
+    property var diskPoints: []
+    property var readPoints: []
+    property var writePoints: []
+    property var srtPoints: []
+    property var qpsPoints: []
+
 
     ColumnLayout {
     anchors.fill: parent
@@ -127,89 +138,131 @@ Rectangle {
                 id: hover
                 acceptedDevices: PointerDevice.Mouse
 
-                onHoveredChanged: {
-                    if (!hovered) {
-                        tooltip.visible = false
-                    }
-                }
-
                 onPointChanged: {
+                    let now = Date.now()
+                    if (now - lastTs < 16) return
+
+                    multiShow.lastTs = now
+
                     chart.handleHover()
                 }
             }
 
             function handleHover() {
-                var p = hover.point.position
+                let p = hover.point.position
+                let value = chart.mapToValue(p, m_cpuSeries)
+                let x = value.x
+                let index = getIndex(x)
+                let d = new Date(value.x)
 
-                var text = ""
+                let text = ""
 
                 if (m_cpuSeries.count > 0) {
-                    var value = chart.mapToValue(p, m_cpuSeries)
-                    var d = new Date(value.x)
-                    text += "\n" + "CPU使用率: " + value.y.toFixed(4)
+                    let p1 = multiShow.cpuPoints[index - 1]
+                    let p2 = multiShow.cpuPoints[index]
+                    let k = (p2.y - p1.y) / (p2.x - p1.x)
+                    let val = p1.y + k * (x - p1.x)
+                    text += "\n" + "CPU使用率: " + val.toFixed(4)
                 }
 
                 if (responseSeries.count > 0) {
-                    var value = chart.mapToValue(p, responseSeries)
-                    var d = new Date(value.x)
-                    text += "\n" + "CPU响应时间: " + value.y.toFixed(4)
+                    let p1 = multiShow.rtPoints[index - 1]
+                    let p2 = multiShow.rtPoints[index]
+                    let k = (p2.y - p1.y) / (p2.x - p1.x)
+                    let val = p1.y + k * (x - p1.x)
+                    text += "\n" + "CPU响应时间: " + val.toFixed(4)
                 }
 
                 if (memorySeries.count > 0) {
-                    var value = chart.mapToValue(p, memorySeries)
-                    var d = new Date(value.x)
-                    text += "\n" + "内存使用率: " + value.y.toFixed(4)
+                    let p1 = multiShow.memPoints[index - 1]
+                    let p2 = multiShow.memPoints[index]
+                    let k = (p2.y - p1.y) / (p2.x - p1.x)
+                    let val = p1.y + k * (x - p1.x)
+                    text += "\n" + "内存使用率: " + val.toFixed(4)
                 }
 
                 if (m_diskSeries.count > 0) {
-                    var value = chart.mapToValue(p, m_diskSeries)
-                    var d = new Date(value.x)
-                    text += "\n" + "磁盘使用率: " + value.y.toFixed(4)
+                    let p1 = multiShow.diskPoints[index - 1]
+                    let p2 = multiShow.diskPoints[index]
+                    let k = (p2.y - p1.y) / (p2.x - p1.x)
+                    let val = p1.y + k * (x - p1.x)
+                    text += "\n" + "磁盘使用率: " + val.toFixed(4)
                 }
 
                 if (io_readSeries.count > 0) {
-                    var value = chart.mapToValue(p, io_readSeries)
-                    var d = new Date(value.x)
-                    text += "\n" + "磁盘读吞吐量: " + value.y.toFixed(4)
+                    let p1 = multiShow.readPoints[index - 1]
+                    let p2 = multiShow.readPoints[index]
+                    let k = (p2.y - p1.y) / (p2.x - p1.x)
+                    let val = p1.y + k * (x - p1.x)
+                    text += "\n" + "磁盘读吞吐量: " + val.toFixed(4)
                 }
 
                 if (io_writeSeries.count > 0) {
-                    var value = chart.mapToValue(p, io_writeSeries)
-                    var d = new Date(value.x)
-                    text += "\n" + "磁盘写吞吐量: " + value.y.toFixed(4)
+                    let p1 = multiShow.writePoints[index - 1]
+                    let p2 = multiShow.writePoints[index]
+                    let k = (p2.y - p1.y) / (p2.x - p1.x)
+                    let val = p1.y + k * (x - p1.x)
+                    text += "\n" + "磁盘写吞吐量: " + val.toFixed(4)
                 }
 
                 if (service_rtSeries.count > 0) {
-                    var value = chart.mapToValue(p, service_rtSeries)
-                    var d = new Date(value.x)
-                    text += "\n" + "服务器响应时间: " + value.y.toFixed(4)
+                    let p1 = multiShow.srtPoints[index - 1]
+                    let p2 = multiShow.srtPoints[index]
+                    let k = (p2.y - p1.y) / (p2.x - p1.x)
+                    let val = p1.y + k * (x - p1.x)
+                    text += "\n" + "服务器响应时间: " + val.toFixed(4)
                 }
 
                 if (m_qpsSeries.count > 0) {
-                    var value = chart.mapToValue(p, m_qpsSeries)
-                    var d = new Date(value.x)
-                    text += "\n" + "服务器QPS: " + value.y.toFixed(4)
+                    let p1 = multiShow.qpsPoints[index - 1]
+                    let p2 = multiShow.qpsPoints[index]
+                    let k = (p2.y - p1.y) / (p2.x - p1.x)
+                    let val = p1.y + k * (x - p1.x)
+                    text += "\n" + "服务器QPS: " + val.toFixed(4)
                 }
 
                 if (text === "")
                     return
 
-                var result =
+                let result =
                     (d.getMonth() + 1) + "-" +
                     d.getDate() + " " +
                     String(d.getHours()).padStart(2, "0") + ":" +
                     String(d.getMinutes()).padStart(2, "0")
-                var time = "时间: " + result + "\n"
+                let time = "时间: " + result + "\n"
 
                 tooltip.text =  time + text
                 tooltip.x = p.x - tooltip.width / 2
                 tooltip.y = p.y + 10
-                tooltip.visible = true
+            }
+
+            function getIndex(x) {
+                let arr = multiShow.cpuPoints
+                if (arr.length === 0) arr = multiShow.rtPoints
+                if (arr.length === 0) arr = multiShow.memPoints
+                if (arr.length === 0) arr = multiShow.diskPoints
+                if (arr.length === 0) arr = multiShow.readPoints
+                if (arr.length === 0) arr = multiShow.writePoints
+                if (arr.length === 0) arr = multiShow.srtPoints
+                if (arr.length === 0) arr = multiShow.qpsPoints
+
+                let l = 0, r = arr.length - 1
+
+                while (l <= r) {
+                    let m = (l + r) >> 1
+                    if (arr[m].x === x) return arr[m].y
+                    if (arr[m].x < x) l = m + 1
+                    else r = m - 1
+                }
+
+                let i = Math.max(1, l)
+
+                return Math.min(i, arr.length - 1)
             }
 
             Rectangle {
                 id: tooltip
-                visible: false
+                visible: hover.hovered
                 color: "#333333CC"
                 radius: 4
 

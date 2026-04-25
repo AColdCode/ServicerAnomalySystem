@@ -22,6 +22,10 @@ Rectangle {
     property var hSeries: historSeries
     property var pSeries: predictSeries
 
+    property double lastTs: 0
+    property var qmlPoints: []
+    property var qmlPrePoints: []
+
 
     ColumnLayout {
     anchors.fill: parent
@@ -71,37 +75,77 @@ Rectangle {
                 id: hover
                 acceptedDevices: PointerDevice.Mouse
 
-                onHoveredChanged: {
-                    if (!hovered) {
-                        tooltip.visible = false
-                    }
-                }
-
                 onPointChanged: {
+                    let now = Date.now()
+                    if (now - lastTs < 16) return
+
+                    singleShow.lastTs = now
+
                     chart.handleHover()
                 }
             }
 
             function handleHover() {
-                var p = hover.point.position
+                let p = hover.point.position
 
-                var value = chart.mapToValue(p, historSeries)
-                var d = new Date(value.x)
+                let value = chart.mapToValue(p, historSeries)
 
-                var result =
+                let vals = getY(value.x)
+                let val = vals[0], risk = vals[1]
+
+                let d = new Date(value.x)
+
+                let result =
                     (d.getMonth() + 1) + "-" +
                     d.getDate() + " " +
                     String(d.getHours()).padStart(2, "0") + ":" +
                     String(d.getMinutes()).padStart(2, "0")
-                tooltip.text = "时间: " + result + "\n" + singleShow.metricName + ": " + value.y.toFixed(4)
+                let txt = "时间: " + result + "\n" + singleShow.metricName + ": " + val.toFixed(4)
+                if (risk !== 0) {
+                    txt += "\n风险值: " + risk.toFixed(4)
+                }
+                tooltip.text = txt
                 tooltip.x = p.x - tooltip.width / 2
                 tooltip.y = p.y + 10
-                tooltip.visible = true
+            }
+
+            function getY(x) {
+                let arr = singleShow.qmlPoints
+                let flag = 0
+                if (arr[arr.length - 1].x < x) {
+                    arr = singleShow.qmlPrePoints
+                    flag = 1
+                }
+                let l = 0, r = arr.length - 1
+
+                while (l <= r) {
+                    let m = (l + r) >> 1
+                    if (arr[m].x === x) return arr[m].y
+                    if (arr[m].x < x) l = m + 1
+                    else r = m - 1
+                }
+
+                let val = 0, risk = 0
+                let i = Math.max(1, l)
+                i = Math.min(i, arr.length - 1)
+                let p1 = arr[i - 1]
+                let p2 = arr[i]
+                let k = (p2.y - p1.y) / (p2.x - p1.x)
+                val = p1.y + k * (x - p1.x)
+
+                // if (flag) {
+                //     let r1 = singleShow.risk_series[i - 1]
+                //     let r2 = singleShow.risk_series[i]
+                //     let k1 = (r2 - r1) / (p2.x - p1.x)
+                //     risk = r1 + k1 * (x - p1.x)
+                // }
+
+                return [val, risk]
             }
 
             Rectangle {
                 id: tooltip
-                visible: false
+                visible: hover.hovered
                 color: "#333333CC"
                 radius: 4
 

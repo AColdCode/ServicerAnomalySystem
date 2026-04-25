@@ -40,6 +40,15 @@ ScrollView {
                     multiShow.writeSeries.clear()
                     multiShow.srtSeries.clear()
                     multiShow.qpsSeries.clear()
+
+                    multiShow.cpuPoints = []
+                    multiShow.rtPoints = []
+                    multiShow.memPoints = []
+                    multiShow.diskPoints = []
+                    multiShow.readPoints = []
+                    multiShow.writePoints = []
+                    multiShow.srtPoints = []
+                    multiShow.qpsPoints = []
                 }
             }
 
@@ -72,132 +81,132 @@ ScrollView {
 
         function onMultiDetectUpdated(index, ts, vs, as) {
             if (index === 0) {
-                multiShow.cpuSeries.clear()
-
                 if (as[0] === 1) {
                     multiShow.multiAnomaly.append(ts[0] * 1000, vs[0])
                 }
-                multiShow.cpuSeries.append(ts[0], vs[0])
-                for (var i = 1; i < ts.length; i++) {
-                    var v = vs[i]
-                    var t = ts[i] * 1000
-                    var a = as[i]
+                multiShow.cpuSeries.append(ts[0] * 1000, vs[0])
+                multiShow.cpuPoints.push(Qt.point(ts[0] * 1000, vs[0]))
+                for (let i = 1; i < ts.length; i++) {
+                    let v = vs[i]
+                    let t = ts[i] * 1000
+                    let a = as[i]
                     if (a === 1) {
                         multiShow.multiAnomaly.append(t, v)
                     }
                     multiShow.cpuSeries.append(t, v)
+                    multiShow.cpuPoints.push(Qt.point(t, v))
                 }
             } else if (index === 1) {
-                multiShow.rtSeries.clear()
-
                 if (as[0] === 1) {
                     multiShow.multiAnomaly.append(ts[0] * 1000, vs[0])
                 }
-                multiShow.rtSeries.append(ts[0], vs[0])
-                for (var i = 1; i < ts.length; i++) {
-                    var v = vs[i]
-                    var t = ts[i] * 1000
-                    var a = as[i]
+                multiShow.rtSeries.append(ts[0] * 1000, vs[0])
+                multiShow.rtPoints.push(Qt.point(ts[0] * 1000, vs[0]))
+                for (let i = 1; i < ts.length; i++) {
+                    let v = vs[i]
+                    let t = ts[i] * 1000
+                    let a = as[i]
                     if (a === 1) {
                         multiShow.multiAnomaly.append(t, v)
                     }
                     multiShow.rtSeries.append(t, v)
+                    multiShow.rtPoints.push(Qt.point(t, v))
                 }
             } else if (index === 2) {
-                multiShow.memSeries.clear()
-
                 if (as[0] === 1) {
                     multiShow.anomaly.append(ts[0] * 1000, vs[0])
                 }
-                multiShow.memSeries.append(ts[0], vs[0])
-                for (var i = 1; i < ts.length; i++) {
-                    var v = vs[i]
-                    var t = ts[i] * 1000
-                    var a = as[i]
+                multiShow.memSeries.append(ts[0] * 1000, vs[0])
+                multiShow.memPoints.push(Qt.point(ts[0] * 1000, vs[0]))
+                for (let i = 1; i < ts.length; i++) {
+                    let v = vs[i]
+                    let t = ts[i] * 1000
+                    let a = as[i]
                     if (a === 1) {
                         multiShow.multiAnomaly.append(t, v)
                     }
                     multiShow.memSeries.append(t, v)
+                    multiShow.memPoints.push(Qt.point(t, v))
                 }
             } else if (index === 3) {
-                multiShow.diskSeries.clear()
-
                 if (as[0] === 1) {
                     multiShow.multiAnomaly.append(ts[0] * 1000, vs[0])
                 }
-                multiShow.diskSeries.append(ts[0], vs[0])
-                for (var i = 1; i < ts.length; i++) {
-                    var v = vs[i]
-                    var t = ts[i] * 1000
-                    var a = as[i]
+                multiShow.diskSeries.append(ts[0] * 1000, vs[0])
+                multiShow.diskPoints.push(Qt.point(ts[0] * 1000, vs[0]))
+                for (let i = 1; i < ts.length; i++) {
+                    let v = vs[i]
+                    let t = ts[i] * 1000
+                    let a = as[i]
                     if (a === 1) {
                         multiShow.multiAnomaly.append(t, v)
                     }
                     multiShow.diskSeries.append(t, v)
+                    multiShow.diskPoints.push(Qt.point(t, v))
                 }
             } else if (index === 4) {
-                multiShow.readSeries.clear()
-
                 if (as[0] === 1) {
                     multiShow.multiAnomaly.append(ts[0] * 1000, vs[0])
                 }
-                multiShow.readSeries.append(ts[0], vs[0])
-                for (var i = 1; i < ts.length; i++) {
-                    var v = vs[i]
-                    var t = ts[i] * 1000
-                    var a = as[i]
+                multiShow.readSeries.append(ts[0] * 1000, vs[0])
+                multiShow.readPoints.push(Qt.point(ts[0] * 1000, vs[0]))
+                for (let i = 1; i < ts.length; i++) {
+                    let v = vs[i]
+                    let t = ts[i] * 1000
+                    let a = as[i]
                     if (a === 1) {
                         multiShow.multiAnomaly.append(t, v)
                     }
                     multiShow.readSeries.append(t, v)
+                    multiShow.readPoints.push(Qt.point(t, v))
                 }
             } else if (index === 5) {
-                multiShow.writeSeries.clear()
-
                 if (as[0] === 1) {
                     multiShow.multiAnomaly.append(ts[0] * 1000, vs[0])
                 }
-                multiShow.writeSeries.append(ts[0], vs[0])
-                for (var i = 1; i < ts.length; i++) {
-                    var v = vs[i]
-                    var t = ts[i] * 1000
-                    var a = as[i]
+                multiShow.writeSeries.append(ts[0] * 1000, vs[0])
+                multiShow.writePoints.push(Qt.point(ts[0] * 1000, vs[0]))
+                for (let i = 1; i < ts.length; i++) {
+                    let v = vs[i]
+                    let t = ts[i] * 1000
+                    let a = as[i]
                     if (a === 1) {
                         multiShow.multiAnomaly.append(t, v)
                     }
                     multiShow.writeSeries.append(t, v)
+                    multiShow.writePoints.push(Qt.point(t, v))
                 }
             } else if (index === 6) {
-                multiShow.srtSeries.clear()
-
                 if (as[0] === 1) {
                     multiShow.multiAnomaly.append(ts[0] * 1000, vs[0])
                 }
-                multiShow.srtSeries.append(ts[0], vs[0])
-                for (var i = 1; i < ts.length; i++) {
-                    var v = vs[i]
-                    var t = ts[i] * 1000
-                    var a = as[i]
+                multiShow.srtSeries.append(ts[0] * 1000, vs[0])
+                multiShow.srtPoints.push(Qt.point(ts[0] * 1000, vs[0]))
+                for (let i = 1; i < ts.length; i++) {
+                    let v = vs[i]
+                    let t = ts[i] * 1000
+                    let a = as[i]
                     if (a === 1) {
                         multiShow.multiAnomaly.append(t, v)
                     }
                     multiShow.srtSeries.append(t, v)
+                    multiShow.srtPoints.push(Qt.point(t, v))
                 }
             } else if (index === 7) {
-                multiShow.qpsSeries.clear()
-
                 if (as[0] === 1) {
                     multiShow.multiAnomaly.append(ts[0] * 1000, vs[0])
                 }
-                multiShow.qpsSeries.append(ts[0], vs[0])
-                for (var i = 1; i < ts.length; i++) {
-                    var v = vs[i]
-                    var t = ts[i] * 1000
-                    var a = as[i]
+                multiShow.qpsSeries.append(ts[0] * 1000, vs[0])
+                multiShow.qpsPoints.push(Qt.point(ts[0] * 1000, vs[0]))
+                for (let i = 1; i < ts.length; i++) {
+                    let v = vs[i]
+                    let t = ts[i] * 1000
+                    let a = as[i]
                     if (a === 1) {
                         multiShow.qpsSeries.append(t, v)
                     }
                     multiShow.srtSeries.append(t, v)
+                    multiShow.srtPoints.push(Qt.point(t, v))
                 }
             }
 
@@ -215,7 +224,7 @@ ScrollView {
                 maxVal += 1
             }
 
-            var padding = (maxVal - minVal) * 0.1
+            let padding = (maxVal - minVal) * 0.1
 
             multiShow.minY = minVal - padding
             multiShow.maxY = maxVal + padding
