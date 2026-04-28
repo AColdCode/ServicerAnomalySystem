@@ -92,14 +92,11 @@ Rectangle {
             }
 
             onClicked: {
-                let role = DataManager.register(usernameField.text, passwordField.text)
+                let result = DataManager.register(usernameField.text, passwordField.text)
 
-                if (role) {
-                    console.log("注册成功")
+                if (result) {
                     usernameField.clear()
                     passwordField.clear()
-                } else {
-                    console.log("注册失败")
                 }
             }
         }

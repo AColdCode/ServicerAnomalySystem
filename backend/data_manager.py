@@ -25,6 +25,7 @@ class DataManager(QObject):
     logoutSignal = Signal()
     userModelChanged = Signal()
     anomalyModelChanged = Signal()
+    markedShow = Signal(str)
     mDataCleared = Signal()
     dataGenerated = Signal(int, int, str, str)
     dataDeleted = Signal(int, int, str, str)
@@ -91,31 +92,41 @@ class DataManager(QObject):
 
     anomalyModel = Property(QObject, getAnomalyModel, notify=anomalyModelChanged)
 
-    # ------------------------
     # QML接口
-    # ------------------------
-    @Slot(str, str, result=str)
+    @Slot(str, str, result=bool)
     def login(self, username, password):
-        role = self.auth.login(username, password)
-        if role:
-            self.current_user = {
-                "username": username,
-                "role": role
-            }
-            self.loginSuccess.emit(username, role)
-            return role
-        return ""
+        result = self.auth.login(username, password)
+        text = "用户名或密码错误"
+        if result:
+            role = result[0]
+            is_active = result[1]
+            if is_active == 0:
+                text = "该用户已被禁用"
+            else:
+                self.current_user = {
+                    "username": username,
+                    "role": role
+                }
+                self.loginSuccess.emit(username, role)
+                if role == "admin":
+                    text = "管理员登录成功"
+                else:
+                    text = "用户登录成功"
+        self.markedShow.emit(text)
+        return result is not None
 
     @Slot(str, str, result=bool)
     def register(self, username, password, role="user"):
         role = self.auth.register(username, password, role)
+        text = "用户名已存在"
         if role:
             self.current_user = {
                 "username": username,
                 "role": role
             }
             self.loginSuccess.emit(username, role)
-
+            text = "注册成功"
+        self.markedShow.emit(text)
         return bool(role)
 
     @Slot(str, result=bool)
@@ -130,6 +141,7 @@ class DataManager(QObject):
     def logout(self):
         self.current_user = None
         self.logoutSignal.emit()
+        self.markedShow.emit("已退出登录")
 
     @Slot()
     def refreshUsers(self):
@@ -165,25 +177,43 @@ class DataManager(QObject):
 
     @Slot(str, str, result=bool)
     def changeUserRole(self, username, role):
+        text = "权限不足，修改用户角色失败"
         name = self.current_user["username"]
         _role = self.current_user["role"]
         if _role == "user":
+            self.markedShow.emit(text)
             return False
-        return self.auth.change_user_role(username, role, name)
+        result = self.auth.change_user_role(username, role, name)
+        if result:
+            text = "修改用户角色成功"
+        self.markedShow.emit(text)
+        return result
 
     @Slot(str, str, result=bool)
     def changeUserActive(self, username, active):
+        text = "权限不足，修改用户状态失败"
         name, role = self.current_user
         if role == "user":
+            self.markedShow.emit(text)
             return False
-        return self.auth.change_user_active(username, active, name)
+        result = self.auth.change_user_active(username, active, name)
+        if result:
+            text = "修改用户状态成功"
+        self.markedShow.emit(text)
+        return result
 
     @Slot(str, result=bool)
     def deleteUser(self, username):
+        text = "权限不足，删除用户失败"
         name, role = self.current_user
         if role == "user":
+            self.markedShow.emit(text)
             return False
-        return self.auth.delete_user(username, name)
+        result = self.auth.delete_user(username, name)
+        if result:
+            text = "删除用户成功"
+        self.markedShow.emit(text)
+        return result
 
     @Slot(int, int, int, str, str)
     def genData(self, serverCount, intervalCount, anomalyRatio, start, end):
@@ -508,6 +538,7 @@ class DataManager(QObject):
         preValue = [float(x) for x in preValue]
         self.singlePredictUpdated.emit(self.predictMetric, timestamps, values, preTimestamps, preValue,
                                        status, final_score, risk_intensity, risk_peak, risk_ratio, risk_series)
+        self.markedShow.emit("预测完成")
 
     @Slot()
     def multiPredict(self):
@@ -536,3 +567,4 @@ class DataManager(QObject):
         for i in range(len(preValues_2d[0])):
             preTimestamps.append(now + (i + 1) * self.interval_minutes * 60)
         self.multiPredictUpdated.emit(timestamps, values_2d, preTimestamps, preValues_2d, new_scores, evaluate)
+        self.markedShow.emit("预测完成")

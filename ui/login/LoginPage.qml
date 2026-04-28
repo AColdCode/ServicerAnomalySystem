@@ -94,16 +94,9 @@ Rectangle {
             onClicked: {
                 let role = DataManager.login(usernameField.text, passwordField.text)
 
-                if (role === "admin") {
-                    console.log("登录成功，用户角色为管理员")
+                if (role) {
                     usernameField.clear()
                     passwordField.clear()
-                } else if (role === "user") {
-                    console.log("登录成功，用户角色为普通用户")
-                    usernameField.clear()
-                    passwordField.clear()
-                } else {
-                    console.log("登录失败，用户名或密码错误")
                 }
             }
         }

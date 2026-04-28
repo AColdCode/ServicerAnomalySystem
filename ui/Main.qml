@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import "charts"
 import "components"
 import "login"
 import "header"
@@ -95,6 +94,10 @@ ApplicationWindow {
         index: 7
     }
 
+    MarkDialog {
+        id: markedPopup
+    }
+
     // 登录注册页面
     LogAndReg {
         id: log_reg
@@ -105,7 +108,17 @@ ApplicationWindow {
     Connections {
         target: DataManager
 
+        function onMarkedShow(text) {
+            markedPopup.text = text
+            markedPopup.open()
+        }
+    }
+
+    Connections {
+        target: DataManager
+
         function onLoginSuccess(username, role) {
+            let roleTxt = role === "admin" ? "管理员" : "用户"
             if (role === "admin") {
                 DataManager.refreshUsers()
             }

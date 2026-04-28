@@ -77,6 +77,7 @@ Rectangle {
 
                 onPointChanged: {
                     if (qmlPoints.length === 0) return
+
                     let now = Date.now()
                     if (now - lastTs < 16) return
 

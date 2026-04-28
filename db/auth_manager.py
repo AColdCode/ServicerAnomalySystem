@@ -54,10 +54,9 @@ class AuthManager:
 
         cursor.execute(
             """
-            SELECT role FROM users 
+            SELECT role, is_active FROM users 
             WHERE username=? 
               AND password=? 
-              AND is_active=1
             """,
             (username, hashed)
         )
@@ -66,7 +65,7 @@ class AuthManager:
         conn.close()
 
         if result:
-            return result[0]  # admin / user
+            return result
         return None
 
     def register(self, username, password, role="user"):
