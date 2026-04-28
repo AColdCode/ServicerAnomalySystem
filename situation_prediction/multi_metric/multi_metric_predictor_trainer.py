@@ -52,9 +52,7 @@ class MultiMetricPredictorTrainer:
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-    # =========================================================
     # 时间特征
-    # =========================================================
     def _add_time_features(self, df):
 
         df["timestamp"] = pd.to_datetime(df["timestamp"])
@@ -66,9 +64,7 @@ class MultiMetricPredictorTrainer:
 
         return df
 
-    # =========================================================
     # 预处理（核心）
-    # =========================================================
     def _preprocess(self, df):
 
         df = self.processor.process(df)
@@ -96,9 +92,7 @@ class MultiMetricPredictorTrainer:
 
         return data_norm
 
-    # =========================================================
     # 构建数据集
-    # =========================================================
     def _build_dataset(self, data, steps):
 
         X, y = [], []
@@ -119,9 +113,7 @@ class MultiMetricPredictorTrainer:
             shuffle=True
         )
 
-    # =========================================================
     # 训练
-    # =========================================================
     def train_and_save(self):
 
         df = self.reader.read_server_metrics(self.table_name)

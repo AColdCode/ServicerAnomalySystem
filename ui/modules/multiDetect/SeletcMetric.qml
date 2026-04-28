@@ -6,8 +6,6 @@ Rectangle {
     id: selectMetric
     color: "white"
 
-    signal clearAnomaly()
-
     ColumnLayout {
         anchors.fill: parent
 
@@ -32,7 +30,6 @@ Rectangle {
                 checked: true
 
                 onCheckedChanged: {
-                    selectMetric.clearAnomaly()
                     if (!checked) {
                         DataManager.cancelMDetectMetric(0)
                     } else {
@@ -45,7 +42,6 @@ Rectangle {
                 Layout.fillWidth: true
 
                 onCheckedChanged: {
-                    selectMetric.clearAnomaly()
                     if (!checked) {
                         DataManager.cancelMDetectMetric(1)
                     } else {
@@ -58,7 +54,6 @@ Rectangle {
                 Layout.fillWidth: true
 
                 onCheckedChanged: {
-                    selectMetric.clearAnomaly()
                     if (!checked) {
                         DataManager.cancelMDetectMetric(2)
                     } else {
@@ -71,7 +66,6 @@ Rectangle {
                 Layout.fillWidth: true
 
                 onCheckedChanged: {
-                    selectMetric.clearAnomaly()
                     if (!checked) {
                         DataManager.cancelMDetectMetric(3)
                     } else {
@@ -85,7 +79,6 @@ Rectangle {
                 Layout.fillWidth: true
 
                 onCheckedChanged: {
-                    selectMetric.clearAnomaly()
                     if (!checked) {
                         DataManager.cancelMDetectMetric(4)
                     } else {
@@ -98,7 +91,6 @@ Rectangle {
                 Layout.fillWidth: true
 
                 onCheckedChanged: {
-                    selectMetric.clearAnomaly()
                     if (!checked) {
                         DataManager.cancelMDetectMetric(5)
                     } else {
@@ -111,7 +103,6 @@ Rectangle {
                 Layout.fillWidth: true
 
                 onCheckedChanged: {
-                    selectMetric.clearAnomaly()
                     if (!checked) {
                         DataManager.cancelMDetectMetric(6)
                     } else {
@@ -124,7 +115,6 @@ Rectangle {
                 Layout.fillWidth: true
 
                 onCheckedChanged: {
-                    selectMetric.clearAnomaly()
                     if (!checked) {
                         DataManager.cancelMDetectMetric(7)
                     } else {

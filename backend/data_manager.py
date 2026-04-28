@@ -25,6 +25,7 @@ class DataManager(QObject):
     logoutSignal = Signal()
     userModelChanged = Signal()
     anomalyModelChanged = Signal()
+    mDataCleared = Signal()
     dataGenerated = Signal(int, int, str, str)
     dataDeleted = Signal(int, int, str, str)
     singleDetectUpdated = Signal(int, list, list, list, float)
@@ -470,6 +471,7 @@ class DataManager(QObject):
             return
         self.minY = 100000.0
         self.maxY = -100000.0
+        self.mDataCleared.emit()
         for metric in self.multiDetectMetrics:
             self.get_mrange_data(metric)
         self.updateMaxMin.emit(self.minY, self.maxY)

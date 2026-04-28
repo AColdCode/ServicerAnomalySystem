@@ -8,11 +8,11 @@ class DBReader:
     def __init__(self, db_path="data_generator/metrics.db"):
         self.db_path = db_path
 
-    def get_connection(self):
+    def _get_connection(self):
         return sqlite3.connect(self.db_path, check_same_thread=False)
 
     def _get_table_columns(self, table_name):
-        conn = self.get_connection()
+        conn = self._get_connection()
         cur = conn.cursor()
         cur.execute(f"PRAGMA table_info({table_name})")
         columns = {row[1] for row in cur.fetchall()}
@@ -39,7 +39,7 @@ class DBReader:
         return None
 
     def get_server_tables(self):
-        conn = self.get_connection()
+        conn = self._get_connection()
         conn.execute("PRAGMA journal_mode=WAL;")
 
         query = """
@@ -55,7 +55,7 @@ class DBReader:
         return sorted(tables["name"].tolist())
 
     def get_latest_timestamp(self, table_name=None):
-        conn = self.get_connection()
+        conn = self._get_connection()
         cur = conn.cursor()
 
         if table_name:
@@ -75,7 +75,7 @@ class DBReader:
         return latest
 
     def read_server_metrics(self, table_name):
-        conn = self.get_connection()
+        conn = self._get_connection()
 
         query = f"""
         SELECT *
@@ -90,7 +90,7 @@ class DBReader:
         return df
 
     def read_metrics_by_time(self, table_name, start_time, end_time):
-        conn = self.get_connection()
+        conn = self._get_connection()
 
         query = f"""
         SELECT *
@@ -113,7 +113,7 @@ class DBReader:
         detect_expr = detect_column if detect_column in columns else "0"
         real_anomaly_expr = real_anomaly_column if real_anomaly_column else "0"
 
-        conn = self.get_connection()
+        conn = self._get_connection()
         cur = conn.cursor()
 
         query = f"""
@@ -187,7 +187,7 @@ class DBReader:
                 {time_condition}
                 """
 
-                conn = self.get_connection()
+                conn = self._get_connection()
                 cur = conn.cursor()
                 cur.execute(query, params)
                 row = cur.fetchone()
@@ -251,7 +251,7 @@ class DBReader:
                     "anomalyNum": 1
                 }
         """
-        conn = self.get_connection()
+        conn = self._get_connection()
         cur = conn.cursor()
 
         # 检查字段是否存在（防止报错）
@@ -336,7 +336,7 @@ class DBReader:
         }
 
     def readTimeAndMetric(self, table, metric, start_time, end_time):
-        conn = self.get_connection()
+        conn = self._get_connection()
         cur = conn.cursor()
 
         query = f"""
@@ -361,7 +361,7 @@ class DBReader:
         return timestamps, values
 
     def readTimeAndMetrics(self, table, metrics, start_time, end_time):
-        conn = self.get_connection()
+        conn = self._get_connection()
         cur = conn.cursor()
 
         metrics_str = ', '.join(metrics)

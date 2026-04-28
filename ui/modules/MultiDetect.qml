@@ -29,27 +29,6 @@ ScrollView {
                 Layout.preferredHeight: 150
                 Layout.leftMargin: 20
                 Layout.rightMargin: 20
-
-                onClearAnomaly: {
-                    multiShow.multiAnomaly.clear()
-                    multiShow.cpuSeries.clear()
-                    multiShow.rtSeries.clear()
-                    multiShow.memSeries.clear()
-                    multiShow.diskSeries.clear()
-                    multiShow.readSeries.clear()
-                    multiShow.writeSeries.clear()
-                    multiShow.srtSeries.clear()
-                    multiShow.qpsSeries.clear()
-
-                    multiShow.cpuPoints = []
-                    multiShow.rtPoints = []
-                    multiShow.memPoints = []
-                    multiShow.diskPoints = []
-                    multiShow.readPoints = []
-                    multiShow.writePoints = []
-                    multiShow.srtPoints = []
-                    multiShow.qpsPoints = []
-                }
             }
 
             MultiShow {
@@ -73,6 +52,35 @@ ScrollView {
             Item {
                 Layout.fillHeight: true
             }
+        }
+    }
+
+    function clearData() {
+        multiShow.multiAnomaly.clear()
+        multiShow.cpuSeries.clear()
+        multiShow.rtSeries.clear()
+        multiShow.memSeries.clear()
+        multiShow.diskSeries.clear()
+        multiShow.readSeries.clear()
+        multiShow.writeSeries.clear()
+        multiShow.srtSeries.clear()
+        multiShow.qpsSeries.clear()
+
+        multiShow.cpuPoints = []
+        multiShow.rtPoints = []
+        multiShow.memPoints = []
+        multiShow.diskPoints = []
+        multiShow.readPoints = []
+        multiShow.writePoints = []
+        multiShow.srtPoints = []
+        multiShow.qpsPoints = []
+    }
+
+    Connections {
+        target: DataManager
+
+        function  onMDataCleared() {
+            clearData()
         }
     }
 

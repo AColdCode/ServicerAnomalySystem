@@ -10,12 +10,12 @@ class DBWriter:
     def __init__(self, db_path="data_generator/metrics.db"):
         self.db_path = db_path
 
-    def get_connection(self):
+    def _get_connection(self):
         return sqlite3.connect(self.db_path, check_same_thread=False)
 
     def ensure_column_exists(self, table, column_name, type="INTEGER"):
 
-        conn = self.get_connection()
+        conn = self._get_connection()
         conn.execute("PRAGMA journal_mode=WAL;")
         cursor = conn.cursor()
 
@@ -33,7 +33,7 @@ class DBWriter:
 
     def update_anomaly(self, table, timestamps, anomalies, column_name, type="INTEGER"):
 
-        conn = self.get_connection()
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         if type == "INTEGER":
@@ -60,7 +60,7 @@ class DBWriter:
         将检测为异常的数据标记为“未处理”（仅新增异常）
         """
 
-        conn = self.get_connection()
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         # 确保列存在
@@ -83,7 +83,7 @@ class DBWriter:
         conn.close()
 
     def mark_anomaly_handled(self, table, timestamp):
-        conn = self.get_connection()
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         # 确保列存在
