@@ -385,6 +385,10 @@ class DataManager(QObject):
         self.predictRange = r
 
     @Slot(int)
+    def setMultiPredictRange(self, r):
+        self.mPredictRange = r
+
+    @Slot(int)
     def setTable(self, tableIndex):
         tableIndex += 1
         self.current_table = f"server_{tableIndex:02d}_metrics"
@@ -548,7 +552,7 @@ class DataManager(QObject):
             self.dbPath,
             self.current_table
         )
-        preValues, scores, evaluate = model.predict_with_score()
+        preValues, scores, evaluate = model.predict_with_score(self.mPredictRange)
 
         metrics_df = preValues.drop(columns=['timestamp'])
         preValues_2d = [metrics_df[col].tolist() for col in metrics_df.columns]
@@ -558,7 +562,11 @@ class DataManager(QObject):
             new_scores.append(round(float(v), 4))
 
         now = self.endTimestamp
-        start = now - 3600
+        start = now
+        if self.mPredictRange == 1:
+            start -= 3600
+        elif self.mPredictRange == 6:
+            start -= 3600 * 6
 
         timestamps, values_2d = self.dbReader.readTimeAndMetrics(self.current_table,
                                                                  self.metrics, start, now)

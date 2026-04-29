@@ -12,13 +12,10 @@ Rectangle {
 
     property string evaluate: ""
     property real final_score: 0.0
-    property real volatility: 0.0
-    property real smoothness: 0.0
-    property real trend: 0.0
-    property real anomaly_ratio: 0.0
-    property real jump: 0.0
-    property real monotonic: 0.0
-    property real entropy: 0.0
+    property real risk_intensity: 0.0
+    property real risk_peak: 0.0
+    property real risk_ratio: 0.0
+    property real correlation_change: 0.0
 
     ColumnLayout {
         anchors.fill: parent
@@ -33,44 +30,110 @@ Rectangle {
             Layout.alignment: Qt.AlignHCenter
         }
 
-        GridLayout {
+        RowLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true
             Layout.leftMargin: 10
             Layout.rightMargin: 10
-            columns: 4
+            Layout.bottomMargin: 10
 
-            Label {
-                text: "综合健康分：" + evaluates.final_score
-                Layout.fillWidth: true
+            Rectangle {
+                Layout.fillHeight: true
+                Layout.preferredWidth: 150
+                color: "white"
+                // border.color: "gray"
+                // border.width: 1
+                // radius: 10
+
+                Label {
+                    anchors.centerIn: parent
+                    text: "总体健康评分\n\n" + evaluates.final_score
+                    font.pixelSize: 16
+                    color: "black"
+                }
             }
-            Label {
-                text: "波动率：" + evaluates.volatility
-                Layout.fillWidth: true
-            }
-            Label {
-                text: "平滑度：" + evaluates.smoothness
-                Layout.fillWidth: true
-            }
-            Label {
-                text: "趋势方向：" + evaluates.trend
+
+            Item {
                 Layout.fillWidth: true
             }
 
-            Label {
-                text: "异常点占比：" + evaluates.anomaly_ratio
+            Rectangle {
+                Layout.fillHeight: true
+                Layout.preferredWidth: 150
+                color: "white"
+                // border.color: "gray"
+                // border.width: 1
+                // radius: 10
+
+                Label {
+                    anchors.centerIn: parent
+                    text: "平均风险\n\n" + evaluates.risk_intensity
+                    font.pixelSize: 16
+                    color: "black"
+                }
+            }
+
+            Item {
                 Layout.fillWidth: true
             }
-            Label {
-                text: "突变程度：" + evaluates.jump
+
+            Rectangle {
+                Layout.fillHeight: true
+                Layout.preferredWidth: 150
+                color: "white"
+                // border.color: "gray"
+                // border.width: 1
+                // radius: 10
+
+                Label {
+                    anchors.centerIn: parent
+                    text: "最大风险\n\n" + evaluates.risk_peak
+                    font.pixelSize: 16
+                    color: "black"
+                }
+            }
+
+            Item {
                 Layout.fillWidth: true
             }
-            Label {
-                text: "单调性：" + evaluates.monotonic
+
+            Rectangle {
+                Layout.fillHeight: true
+                Layout.preferredWidth: 150
+                color: "white"
+                // border.color: "gray"
+                // border.width: 1
+                // radius: 10
+
+                Label {
+                    anchors.centerIn: parent
+                    text: "风险持续性\n\n" + evaluates.risk_ratio
+                    font.pixelSize: 16
+                    color: "black"
+                }
+            }
+
+            Item {
                 Layout.fillWidth: true
             }
-            Label {
-                text: "复杂度：" + evaluates.entropy
+
+            Rectangle {
+                Layout.fillHeight: true
+                Layout.preferredWidth: 150
+                color: "white"
+                // border.color: "gray"
+                // border.width: 1
+                // radius: 10
+
+                Label {
+                    anchors.centerIn: parent
+                    text: "系统结构异常\n\n" + evaluates.correlation_change
+                    font.pixelSize: 16
+                    color: "black"
+                }
+            }
+
+            Item {
                 Layout.fillWidth: true
             }
         }

@@ -49,13 +49,10 @@ ScrollView {
         function onMultiPredictUpdated(hTs, hVs, pTs, pVs, scores, evaluate) {
             evaluates.evaluate = evaluate
             evaluates.final_score = scores[0]
-            evaluates.volatility = scores[1]
-            evaluates.smoothness = scores[2]
-            evaluates.trend = scores[3]
-            evaluates.anomaly_ratio = scores[4]
-            evaluates.jump = scores[5]
-            evaluates.monotonic = scores[6]
-            evaluates.entropy = scores[7]
+            evaluates.risk_intensity = scores[1]
+            evaluates.risk_peak = scores[2]
+            evaluates.risk_ratio = scores[3]
+            evaluates.correlation_change = scores[4]
 
             multiShow.cpuChart.hSeries.clear()
             multiShow.cpuChart.pSeries.clear()

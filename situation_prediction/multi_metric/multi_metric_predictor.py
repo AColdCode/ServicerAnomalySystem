@@ -36,6 +36,7 @@ class MultiMetricPredictor:
 
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # 时间特征
     def _add_time_features(self, df):
         df["timestamp"] = pd.to_datetime(df["timestamp"])
         hour = df["timestamp"].dt.hour
@@ -43,6 +44,7 @@ class MultiMetricPredictor:
         df["cos_hour"] = np.cos(2 * np.pi * hour / 24)
         return df
 
+    # 构建输入
     def _build_input(self, df):
 
         df = self.processor.process(df)
@@ -61,6 +63,7 @@ class MultiMetricPredictor:
 
         return data_norm, raw, df
 
+    # 模型加载
     def _load_model(self, steps):
 
         model = MultiMetricAttentionLSTM(
@@ -83,6 +86,7 @@ class MultiMetricPredictor:
         state = self.scaler_manager.load(self.table_name)
         self.scaler.load_state_dict(state)
 
+    # 预测
     def _predict(self, hours):
 
         steps = int(hours * 3600 / self.interval)
@@ -96,7 +100,7 @@ class MultiMetricPredictor:
 
         last_window = data_norm[-self.window_size:]
 
-        x = torch.tensor(last_window, dtype=torch.float32)\
+        x = torch.tensor(last_window, dtype=torch.float32) \
             .unsqueeze(0).to(self.device)
 
         with torch.no_grad():
@@ -106,112 +110,107 @@ class MultiMetricPredictor:
         tmp[:, :8] = pred_norm
 
         pred = self.scaler.inverse_transform(tmp)[:, :8]
-
         pred = np.clip(pred, 0, None)
 
         return pred, raw, df
 
-    def _calc_volatility(self, pred):
-        return np.mean(np.abs(np.diff(pred, axis=0)))
+    # 风险建模
+    def _calc_risk_series(self, pred, history):
 
-    def _calc_smoothness(self, pred):
-        return np.mean(np.var(np.diff(pred, axis=0), axis=0))
+        pred = np.array(pred)
 
-    def _calc_trend(self, pred):
-
-        # 每个指标趋势
-        slopes = []
-
-        x = np.arange(len(pred))
-
-        for i in range(pred.shape[1]):
-            y = pred[:, i]
-
-            slope = np.polyfit(x, y, 1)[0]
-            slopes.append(slope)
-
-        return np.mean(slopes)
-
-    def _calc_anomaly_ratio(self, pred, history):
+        # 单指标风险
+        diff = np.abs(np.diff(pred, axis=0))
+        diff = np.vstack([np.zeros((1, pred.shape[1])), diff])
 
         mean = np.mean(history, axis=0)
         std = np.std(history, axis=0) + 1e-8
 
         z = np.abs((pred - mean) / std)
 
-        return np.mean(z > 3)
+        risk_each = 0.6 * diff + 0.4 * z
 
-    def _calc_jump(self, pred):
-        return np.max(np.abs(np.diff(pred, axis=0)))
+        # 系统级风险
+        risk_mean = np.mean(risk_each, axis=1)
+        risk_std = np.std(risk_each, axis=1)
 
-    def _calc_monotonic(self, pred):
+        risk_system = 0.7 * risk_mean + 0.3 * risk_std
 
-        diff = np.diff(pred, axis=0)
+        return risk_each, risk_system
 
-        return max(np.sum(diff > 0), np.sum(diff < 0)) / (diff.size + 1e-8)
+    # 相关性变化（关键）
+    def _calc_correlation_change(self, pred, history):
 
-    def _calc_entropy(self, pred):
+        hist_corr = np.corrcoef(history.T)
+        pred_corr = np.corrcoef(pred.T)
 
-        hist, _ = np.histogram(pred.flatten(), bins=20)
+        diff = np.abs(hist_corr - pred_corr)
 
-        p = hist / np.sum(hist)
-        p = p[p > 0]
+        return float(np.mean(diff))
 
-        return -np.sum(p * np.log(p))
-
-    def _calc_final_score(self, trend, anomaly_ratio, jump, monotonic, entropy):
-
-        score = (
-                100
-                - anomaly_ratio * 50
-                - jump * 2
-                - monotonic * 20
-                + trend * 30
-                + entropy * 2
-        )
-
-        return max(0, min(100, score))
-
+    # 评估
     def _evaluate(self, pred, history):
 
-        volatility = self._calc_volatility(pred)
-        smoothness = self._calc_smoothness(pred)
-        trend = self._calc_trend(pred)
-        anomaly_ratio = self._calc_anomaly_ratio(pred, history)
-        jump = self._calc_jump(pred)
-        monotonic = self._calc_monotonic(pred)
-        entropy = self._calc_entropy(pred)
+        risk_each, risk_system = self._calc_risk_series(pred, history)
 
-        final_score = self._calc_final_score(
-            trend,
-            anomaly_ratio,
-            jump,
-            monotonic,
-            entropy
+        if len(pred) < 30:
+            corr_change = 0.0
+        else:
+            corr_change = self._calc_correlation_change(pred, history)
+            corr_change = min(corr_change, 0.3)
+
+        risk_intensity = float(np.mean(risk_system))
+        risk_peak = float(np.max(risk_system))
+        risk_ratio = float(np.mean(risk_system > np.percentile(risk_system, 90)))
+
+        score = (
+                70 * np.exp(-risk_intensity)
+                + 30 * (1 - corr_change)
         )
 
         return {
-            "final_score": final_score,
-            "volatility": volatility,
-            "smoothness": smoothness,
-            "trend": trend,
-            "anomaly_ratio": anomaly_ratio,
-            "jump": jump,
-            "monotonic": monotonic,
-            "entropy": entropy
+            "final_score": float(score),
+
+            "risk_intensity": risk_intensity,
+            "risk_peak": risk_peak,
+            "risk_ratio": risk_ratio,
+
+            "correlation_change": corr_change
         }
 
+    # 状态判断
+    def judge_status(self, scores):
+
+        r = scores["risk_intensity"]
+        corr = scores["correlation_change"]
+
+        if r > 2.5:
+            return "系统级异常风险"
+
+        if r > 1.8:
+            return "高风险"
+
+        if corr > 0.5 and r > 1.0:
+            return "结构异常"
+
+        if r > 1.2:
+            return "中风险"
+
+        if scores["final_score"] > 80:
+            return "稳定"
+
+        return "低风险"
+
+    # 对外接口
     def predict_with_score(self, hours=1):
-
-        print(f"预测未来 {hours}h")
-
         pred, raw, df = self._predict(hours)
 
         history = raw[-500:]
 
         scores = self._evaluate(pred, history)
+        status = self.judge_status(scores)
 
-        # 构建时间
+        # 时间戳构建
         last_ts = df["timestamp"].iloc[-1]
 
         timestamps = [
@@ -222,72 +221,23 @@ class MultiMetricPredictor:
         result_df = pd.DataFrame(pred, columns=self.metrics)
         result_df["timestamp"] = timestamps
 
-        score = scores["final_score"]
-        trend = scores["trend"]
-        volatility = scores["volatility"]
-        anomaly_ratio = scores["anomaly_ratio"]
-        evaluate = self.judge_status(score, trend, volatility, anomaly_ratio)
-
-        return result_df, scores, evaluate
-
-    def judge_status(self, score, trend, volatility, anomaly_ratio):
-
-        if anomaly_ratio > 0.1:
-            return "严重异常"
-
-        if score < 30:
-            return "高风险"
-
-        if trend < -0.7:
-            return "持续恶化"
-
-        if volatility > 0.3:
-            return "高波动"
-
-        if score > 80:
-            return "优秀"
-
-        if score > 60:
-            return "良好"
-
-        return "一般"
+        return result_df, scores, status
 
 
-# if __name__ == "__main__":
-#
-#     feature_columns = [
-#         "cpu_usage", "response_time", "memory_usage",
-#         "disk_usage", "io_read", "io_write",
-#         "service_rt", "service_qps"
-#     ]
-#
-#     predictor = MultiMetricPredictor(
-#         r"D:\Python\pythonProject\ServicerAnomalySystem\data_generator\metrics.db",
-#         "server_01_metrics"
-#     )
-#
-#     future, scores, evaluate = predictor.predict_with_score()
-#     print(future)
-#
-#     df = pd.DataFrame(future, columns=feature_columns)
-#
-#     # 时间戳生成
-#     last_ts = predictor.reader.read_server_metrics(
-#         predictor.table_name
-#     )["timestamp"].iloc[-1]
-#
-#     df["timestamp"] = [
-#         last_ts + (i + 1) * predictor.interval
-#         for i in range(len(df))
-#     ]
-#
-#     pd.set_option('display.max_rows', None)
-#     pd.set_option('display.max_columns', None)
-#     pd.set_option('display.width', None)
-#
-#     print("总体预测：")
-#     print(evaluate)
-#     print("\n评分：")
-#     for k, v in scores.items():
-#         print(f"{k}: {v:.4f}")
-#     print(df)
+# 测试
+if __name__ == "__main__":
+
+    predictor = MultiMetricPredictor(
+        r"D:\Python\pythonProject\ServicerAnomalySystem\data_generator\metrics.db",
+        "server_02_metrics"
+    )
+
+    future, scores, status = predictor.predict_with_score(6)
+
+    print(future)
+    print("\n评分：")
+    for k, v in scores.items():
+        if isinstance(v, float):
+            print(f"{k}: {v:.4f}")
+
+    print("\n状态：", status)

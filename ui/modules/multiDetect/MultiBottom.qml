@@ -192,9 +192,8 @@ Rectangle {
 
                             TapHandler {
                                 onTapped: {
-                                    DataManager.markAnomalyHandled(itemRet.timestamp)
-                                    listView.savePosition()
-                                    DataManager.refreshAnomalyData()
+                                    confirmDialog.currentTimestamp = itemRet.timestamp
+                                    confirmDialog.open()
                                 }
                             }
                         }
@@ -236,6 +235,32 @@ Rectangle {
 
             Component.onCompleted: {
                 DataManager.refreshAnomalyData()
+            }
+
+            Dialog {
+                id: confirmDialog
+                anchors.centerIn: parent
+                modal: true
+                width: 300
+                title: "确认操作"
+
+                property int currentTimestamp: -1
+
+                standardButtons: Dialog.Ok | Dialog.Cancel
+
+                onAccepted: {
+                    if (currentTimestamp !== -1) {
+                        listView.savePosition()
+                        DataManager.markAnomalyHandled(currentTimestamp)
+                        DataManager.refreshAnomalyData()
+                    }
+                }
+
+                contentItem: Text {
+                    text: "确定要处理该异常吗？"
+                    font.pixelSize: 16
+                    wrapMode: Text.WordWrap
+                }
             }
         }
     }

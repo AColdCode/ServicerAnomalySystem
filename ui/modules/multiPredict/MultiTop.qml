@@ -35,11 +35,34 @@ Item {
             Layout.fillWidth: true
         }
 
+        ComboBox {
+            id: selectTime
+            Layout.preferredWidth: 150
+            Layout.preferredHeight: 50
+            Layout.rightMargin: 20
+            font.pixelSize: 20
+            currentIndex: 0
+            model: ["未来1小时", "未来6小时"]
+
+            onCurrentIndexChanged: {
+                if (currentIndex === 0) {
+                    DataManager.setMultiPredictRange(1)
+                } else if (currentIndex === 1) {
+                    DataManager.setMultiPredictRange(6)
+                }
+            }
+
+            HoverHandler {
+                cursorShape: Qt.PointingHandCursor
+            }
+        }
+
         Rectangle {
             id: predictButton
             Layout.preferredWidth: 100
             Layout.preferredHeight: 50
             Layout.rightMargin: 20
+            Layout.leftMargin: 20
             color: "black"
             radius: 10
 

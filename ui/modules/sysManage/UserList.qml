@@ -290,14 +290,10 @@ Rectangle {
                             TapHandler {
                                 id: enable_tap
                                 onTapped: {
-                                    let result = DataManager.changeUserActive(nameText.m_name, activeRt.m_active === 0 ? 1 : 0)
-                                    if (result) {
-                                        activeRt.m_active = activeRt.m_active === 0 ? 1 : 0
-                                        userListview.savePosition()
-                                        DataManager.refreshUsers()
-                                    } else {
-                                        console.log("权限不足，修改用户状态失败")
-                                    }
+                                    confirmDialog.actionType = "toggleActive"
+                                    confirmDialog.targetUser = nameText.m_name
+                                    confirmDialog.newState = activeRt.m_active === 0 ? 1 : 0
+                                    confirmDialog.open()
                                 }
                             }
                         }
@@ -325,13 +321,9 @@ Rectangle {
                             TapHandler {
                                 id: del_tap
                                 onTapped: {
-                                    let result = DataManager.deleteUser(nameText.m_name)
-                                    if (result) {
-                                        userListview.savePosition()
-                                        DataManager.refreshUsers()
-                                    } else {
-                                        console.log("权限不足，删除用户失败")
-                                    }
+                                    confirmDialog.actionType = "delete"
+                                    confirmDialog.targetUser = nameText.m_name
+                                    confirmDialog.open()
                                 }
                             }
                         }
@@ -393,6 +385,61 @@ Rectangle {
 
             Component.onCompleted: {
                 DataManager.refreshUsers()
+            }
+
+            Dialog {
+                id: confirmDialog
+                anchors.centerIn: parent
+                width: 320
+                modal: true
+                title: "确认操作"
+
+                property string actionType: ""
+                property string targetUser: ""
+                property int newState: -1
+
+                standardButtons: Dialog.Ok | Dialog.Cancel
+
+                onAccepted: {
+                    userListview.savePosition()
+
+                    if (actionType === "delete") {
+                        let result = DataManager.deleteUser(targetUser)
+                        if (!result)
+                            console.log("权限不足，删除用户失败")
+                    }
+
+                    else if (actionType === "toggleActive") {
+                        let result = DataManager.changeUserActive(targetUser, newState)
+                        if (!result)
+                            console.log("权限不足，修改用户状态失败")
+                    }
+
+                    DataManager.refreshUsers()
+                }
+
+                contentItem: Column {
+                    width: parent.width
+                    spacing: 10
+
+                    Text {
+                        width: parent.width
+                        wrapMode: Text.WordWrap
+                        text: {
+                            if (confirmDialog.actionType === "delete")
+                                return "确定要删除该用户吗？该操作不可恢复！"
+
+                            if (confirmDialog.actionType === "toggleActive")
+                                return confirmDialog.newState === 1
+                                    ? "确定要启用该用户吗？"
+                                    : "确定要禁用该用户吗？"
+
+                            return ""
+                        }
+
+                        color: confirmDialog.actionType === "delete" ? "red" : "black"
+                    }
+                }
             }
         }
     }
