@@ -211,10 +211,10 @@ ScrollView {
                     let t = ts[i] * 1000
                     let a = as[i]
                     if (a === 1) {
-                        multiShow.qpsSeries.append(t, v)
+                        multiShow.multiAnomaly.append(t, v)
                     }
-                    multiShow.srtSeries.append(t, v)
-                    multiShow.srtPoints.push(Qt.point(t, v))
+                    multiShow.qpsSeries.append(t, v)
+                    multiShow.qpsPoints.push(Qt.point(t, v))
                 }
             }
 
