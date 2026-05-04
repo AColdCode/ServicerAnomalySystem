@@ -58,21 +58,21 @@ ScrollView {
             singleShow.risk_series = risk_series
 
             if (index === 0) {
-                singleShow.metric = "CPU使用率"
+                singleShow.metric = "CPU使用率(%)"
             } else if (index === 1) {
-                singleShow.metric = "CPU响应时间"
+                singleShow.metric = "CPU响应时间(秒)"
             } else if (index === 2) {
-                singleShow.metric = "内存使用率"
+                singleShow.metric = "内存使用率(%)"
             } else if (index === 3) {
-                singleShow.metric = "磁盘使用率"
+                singleShow.metric = "磁盘使用率(%)"
             } else if (index === 4) {
-                singleShow.metric = "磁盘读吞吐量"
+                singleShow.metric = "磁盘读吞吐量(MB/s)"
             } else if (index === 5) {
-                singleShow.metric = "磁盘写吞吐量"
+                singleShow.metric = "磁盘写吞吐量(MB/s)"
             } else if (index === 6) {
-                singleShow.metric = "服务响应时间"
+                singleShow.metric = "服务响应时间(秒)"
             } else if (index === 7) {
-                singleShow.metric = "服务QPS"
+                singleShow.metric = "服务QPS(次/秒)"
             }
 
             singleShow.hSeries.clear()

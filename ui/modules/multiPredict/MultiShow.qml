@@ -28,28 +28,28 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            metricName: "CPU使用率"
+            metricName: "CPU使用率(%)"
         }
         SingleChart {
             id: responseChart
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            metricName: "CPU响应时间"
+            metricName: "CPU响应时间(秒)"
         }
         SingleChart {
             id: memoryChart
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            metricName: "内存使用率"
+            metricName: "内存使用率(%)"
         }
         SingleChart {
             id: m_diskChart
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            metricName: "磁盘使用率"
+            metricName: "磁盘使用率(%)"
         }
 
         SingleChart {
@@ -57,28 +57,28 @@ Rectangle {
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            metricName: "磁盘读吞吐量"
+            metricName: "磁盘读吞吐量(MB/s)"
         }
         SingleChart {
             id: io_writeChart
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            metricName: "磁盘写吞吐量"
+            metricName: "磁盘写吞吐量(MB/s)"
         }
         SingleChart {
             id: service_rtChart
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            metricName: "服务器响应时间"
+            metricName: "服务器响应时间(秒)"
         }
         SingleChart {
             id: m_qpsChart
             Layout.fillWidth: true
             Layout.fillHeight: true
 
-            metricName: "服务器QPS"
+            metricName: "服务器QPS(次/秒)"
         }
     }
 }

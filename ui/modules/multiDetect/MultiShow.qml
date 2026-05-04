@@ -59,56 +59,56 @@ Rectangle {
             antialiasing: true
 
             LineSeries {
-                name: "CPU使用率"
+                name: "CPU使用率(%)"
                 id: m_cpuSeries
                 axisX: metricAxisX
                 axisY: metricAxisY
             }
 
             LineSeries {
-                name: "CPU响应时间"
+                name: "CPU响应时间(秒)"
                 id: responseSeries
                 axisX: metricAxisX
                 axisY: metricAxisY
             }
 
             LineSeries {
-                name: "内存使用率"
+                name: "内存使用率(%)"
                 id: memorySeries
                 axisX: metricAxisX
                 axisY: metricAxisY
             }
 
             LineSeries {
-                name: "磁盘使用率"
+                name: "磁盘使用率(%)"
                 id: m_diskSeries
                 axisX: metricAxisX
                 axisY: metricAxisY
             }
 
             LineSeries {
-                name: "磁盘读吞吐量"
+                name: "磁盘读吞吐量(MB/s)"
                 id: io_readSeries
                 axisX: metricAxisX
                 axisY: metricAxisY
             }
 
             LineSeries {
-                name: "磁盘写吞吐量"
+                name: "磁盘写吞吐量(MB/s)"
                 id: io_writeSeries
                 axisX: metricAxisX
                 axisY: metricAxisY
             }
 
             LineSeries {
-                name: "服务器响应时间"
+                name: "服务器响应时间(秒)"
                 id: service_rtSeries
                 axisX: metricAxisX
                 axisY: metricAxisY
             }
 
             LineSeries {
-                name: "服务器QPS"
+                name: "服务器QPS(次/秒)"
                 id: m_qpsSeries
                 axisX: metricAxisX
                 axisY: metricAxisY
@@ -162,7 +162,7 @@ Rectangle {
                     let p2 = multiShow.cpuPoints[index]
                     let k = (p2.y - p1.y) / (p2.x - p1.x)
                     let val = p1.y + k * (x - p1.x)
-                    text += "\n" + "CPU使用率: " + val.toFixed(4)
+                    text += "\n" + "CPU使用率: " + val.toFixed(4) + "%"
                 }
 
                 if (responseSeries.count > 0) {
@@ -170,7 +170,7 @@ Rectangle {
                     let p2 = multiShow.rtPoints[index]
                     let k = (p2.y - p1.y) / (p2.x - p1.x)
                     let val = p1.y + k * (x - p1.x)
-                    text += "\n" + "CPU响应时间: " + val.toFixed(4)
+                    text += "\n" + "CPU响应时间: " + val.toFixed(4) + "秒"
                 }
 
                 if (memorySeries.count > 0) {
@@ -178,7 +178,7 @@ Rectangle {
                     let p2 = multiShow.memPoints[index]
                     let k = (p2.y - p1.y) / (p2.x - p1.x)
                     let val = p1.y + k * (x - p1.x)
-                    text += "\n" + "内存使用率: " + val.toFixed(4)
+                    text += "\n" + "内存使用率: " + val.toFixed(4) + "%"
                 }
 
                 if (m_diskSeries.count > 0) {
@@ -186,7 +186,7 @@ Rectangle {
                     let p2 = multiShow.diskPoints[index]
                     let k = (p2.y - p1.y) / (p2.x - p1.x)
                     let val = p1.y + k * (x - p1.x)
-                    text += "\n" + "磁盘使用率: " + val.toFixed(4)
+                    text += "\n" + "磁盘使用率: " + val.toFixed(4) + "%"
                 }
 
                 if (io_readSeries.count > 0) {
@@ -194,7 +194,7 @@ Rectangle {
                     let p2 = multiShow.readPoints[index]
                     let k = (p2.y - p1.y) / (p2.x - p1.x)
                     let val = p1.y + k * (x - p1.x)
-                    text += "\n" + "磁盘读吞吐量: " + val.toFixed(4)
+                    text += "\n" + "磁盘读吞吐量: " + val.toFixed(4) + "MB/s"
                 }
 
                 if (io_writeSeries.count > 0) {
@@ -202,7 +202,7 @@ Rectangle {
                     let p2 = multiShow.writePoints[index]
                     let k = (p2.y - p1.y) / (p2.x - p1.x)
                     let val = p1.y + k * (x - p1.x)
-                    text += "\n" + "磁盘写吞吐量: " + val.toFixed(4)
+                    text += "\n" + "磁盘写吞吐量: " + val.toFixed(4) + "MB/s"
                 }
 
                 if (service_rtSeries.count > 0) {
@@ -210,7 +210,7 @@ Rectangle {
                     let p2 = multiShow.srtPoints[index]
                     let k = (p2.y - p1.y) / (p2.x - p1.x)
                     let val = p1.y + k * (x - p1.x)
-                    text += "\n" + "服务器响应时间: " + val.toFixed(4)
+                    text += "\n" + "服务器响应时间: " + val.toFixed(4) + "秒"
                 }
 
                 if (m_qpsSeries.count > 0) {
@@ -218,7 +218,7 @@ Rectangle {
                     let p2 = multiShow.qpsPoints[index]
                     let k = (p2.y - p1.y) / (p2.x - p1.x)
                     let val = p1.y + k * (x - p1.x)
-                    text += "\n" + "服务器QPS: " + val.toFixed(4)
+                    text += "\n" + "服务器QPS: " + val.toFixed(4) + "次/秒"
                 }
 
                 if (text === "")

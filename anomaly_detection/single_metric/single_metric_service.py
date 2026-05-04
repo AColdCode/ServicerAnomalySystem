@@ -8,7 +8,7 @@ from anomaly_detection.single_metric.detector import SingleMetricDetector
 
 class SingleMetricDetectionService:
     """
-    单指标异常检测服务类
+    单指标异常检测类
     """
 
     def __init__(self, db_path, table_name, metric):
