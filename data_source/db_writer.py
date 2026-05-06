@@ -1,4 +1,6 @@
+import os
 import sqlite3
+import sys
 
 
 class DBWriter:
@@ -11,7 +13,14 @@ class DBWriter:
         self.db_path = db_path
 
     def _get_connection(self):
-        return sqlite3.connect(self.db_path, check_same_thread=False)
+        if hasattr(sys, '_MEIPASS'):
+            # PyInstaller 打包后会创建临时文件夹
+            base_path = sys._MEIPASS
+        else:
+            # 开发环境
+            base_path = os.path.abspath(".")
+        path = os.path.join(base_path, self.db_path)
+        return sqlite3.connect(path, check_same_thread=False)
 
     def ensure_column_exists(self, table, column_name, type="INTEGER"):
 
