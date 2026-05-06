@@ -78,7 +78,7 @@ Popup {
                     Layout.maximumHeight: 24
                     fillMode: Image.PreserveAspectFit
 
-                    source: "../../images/back.svg"
+                    source: RESOURCE_PATH + "images/back.svg"
                 }
 
                 Text {

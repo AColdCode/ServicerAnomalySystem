@@ -1,3 +1,5 @@
+import sys
+
 import joblib
 import os
 
@@ -14,7 +16,12 @@ class ScalerManager:
         return os.path.join(self.base_dir, table)
 
     def _path(self, table, metric):
-        return os.path.join(self._dir(table), f"{metric}.pkl")
+        base_path = os.path.abspath(".")
+        if hasattr(sys, '_MEIPASS'):
+            base_path = sys._MEIPASS
+        scaler_dir = os.path.join(self._dir(table), f"{metric}.pkl")
+        path = os.path.join(base_path, scaler_dir)
+        return path
 
     # =========================
     # save

@@ -39,7 +39,7 @@ ToolBar {
             Image {
                 anchors.fill: parent
                 fillMode: Image.PreserveAspectFit
-                source: "../../images/menu.svg"
+                source: RESOURCE_PATH + "images/menu.svg"
             }
 
             HoverHandler {

@@ -58,7 +58,7 @@ Rectangle {
 
                     Image {
                         id: startCalendarIcon
-                        source: "../../../images/calendar.svg"
+                        source: RESOURCE_PATH + "images/calendar.svg"
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.rightMargin: 20
@@ -99,7 +99,7 @@ Rectangle {
 
                     Image {
                         id: endCalendarIcon
-                        source: "../../../images/calendar.svg"
+                        source: RESOURCE_PATH + "images/calendar.svg"
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.rightMargin: 20
@@ -144,7 +144,7 @@ Rectangle {
                 Image {
                     id: dataClearIcon
                     visible: !dataClearBtn.isClearing
-                    source: "../../../images/dataDelete.svg"
+                    source: RESOURCE_PATH + "images/dataDelete.svg"
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
                     Layout.leftMargin: 10
@@ -153,7 +153,7 @@ Rectangle {
 
                 AnimatedImage {
                     visible: dataClearBtn.isClearing
-                    source: "../../../images/loading.gif"
+                    source: RESOURCE_PATH + "images/loading.gif"
                     Layout.preferredWidth: 30
                     Layout.preferredHeight: 30
                     Layout.leftMargin: 10

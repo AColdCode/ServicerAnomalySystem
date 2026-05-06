@@ -1,13 +1,21 @@
+import os
 import sqlite3
 import random
 import math
+import sys
 from datetime import datetime, timedelta
 
 
 class MetricsGenerator:
 
     def __init__(self, db_name="data_generator/metrics.db"):
-        self.db_name = db_name
+        if hasattr(sys, '_MEIPASS'):
+            # PyInstaller 打包后会创建临时文件夹
+            base_path = sys._MEIPASS
+        else:
+            # 开发环境
+            base_path = os.path.abspath(".")
+        self.db_name = os.path.join(base_path, db_name)
 
     # 时间解析
     def _parse_time(self, time_str):

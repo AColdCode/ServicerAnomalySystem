@@ -41,7 +41,7 @@ Rectangle {
                 Image {
                     anchors.fill: parent
                     fillMode: Image.PreserveAspectFit
-                    source: "../../../images/refresh.svg"
+                    source: RESOURCE_PATH + "images/refresh.svg"
                 }
 
                 HoverHandler {
@@ -279,7 +279,7 @@ Rectangle {
                             Image {
                                 anchors.fill: parent
                                 fillMode: Image.PreserveAspectFit
-                                source: activeRt.m_active === 0 ? "../../../images/usable.svg" : "../../../images/disabled.svg"
+                                source: activeRt.m_active === 0 ? RESOURCE_PATH + "images/usable.svg" : RESOURCE_PATH + "images/disabled.svg"
                             }
 
                             HoverHandler {
@@ -310,7 +310,7 @@ Rectangle {
                             Image {
                                 anchors.fill: parent
                                 fillMode: Image.PreserveAspectFit
-                                source: "../../../images/delete.svg"
+                                source: RESOURCE_PATH + "images/delete.svg"
                             }
 
                             HoverHandler {

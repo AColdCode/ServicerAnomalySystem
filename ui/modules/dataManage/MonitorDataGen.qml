@@ -49,7 +49,7 @@ Rectangle {
 
                     Image {
                         id: startCalendarIcon
-                        source: "../../../images/calendar.svg"
+                        source: RESOURCE_PATH + "images/calendar.svg"
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.rightMargin: 20
@@ -90,7 +90,7 @@ Rectangle {
 
                     Image {
                         id: endCalendarIcon
-                        source: "../../../images/calendar.svg"
+                        source: RESOURCE_PATH + "images/calendar.svg"
                         anchors.right: parent.right
                         anchors.verticalCenter: parent.verticalCenter
                         anchors.rightMargin: 20
@@ -262,7 +262,7 @@ Rectangle {
                 Image {
                     id: dataGenIcon
                     visible: !dataGenBtn.isGening
-                    source: "../../../images/dataGen.svg"
+                    source: RESOURCE_PATH + "images/dataGen.svg"
                     Layout.preferredWidth: 24
                     Layout.preferredHeight: 24
                     Layout.leftMargin: 10
@@ -271,7 +271,7 @@ Rectangle {
 
                 AnimatedImage {
                     visible: dataGenBtn.isGening
-                    source: "../../../images/loading.gif"
+                    source: RESOURCE_PATH + "images/loading.gif"
                     Layout.preferredWidth: 30
                     Layout.preferredHeight: 30
                     Layout.leftMargin: 10

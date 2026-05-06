@@ -48,7 +48,7 @@ Rectangle {
 
                 Image {
                     anchors.fill: parent
-                    source: "../../../images/refresh.svg"
+                    source: RESOURCE_PATH + "images/refresh.svg"
                     fillMode: Image.PreserveAspectFit
                 }
 

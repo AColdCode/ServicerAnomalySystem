@@ -35,7 +35,7 @@ Rectangle {
             Image {
                 anchors.fill: parent
                 fillMode: Image.PreserveAspectFit
-                source: "../../images/exit.svg"
+                source: RESOURCE_PATH + "images/exit.svg"
             }
 
             HoverHandler {

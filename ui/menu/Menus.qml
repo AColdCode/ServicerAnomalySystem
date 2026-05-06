@@ -18,7 +18,7 @@ Rectangle {
         MyMenuItem {
             Layout.fillWidth: true
             text: "主控台"
-            icon: "../../images/main_interface.svg"
+            icon: RESOURCE_PATH + "images/main_interface.svg"
             index: 1
             color: menus.currentIndex === index ? "#2474F5" : hovered ? "#2196F3" : "#F9FAFB"
 
@@ -30,7 +30,7 @@ Rectangle {
         MyMenuItem {
             Layout.fillWidth: true
             text: "单指标异常检测"
-            icon: "../../images/detect_s.svg"
+            icon: RESOURCE_PATH + "images/detect_s.svg"
             index: 2
             color: menus.currentIndex === index ? "#2474F5" : hovered ? "#2196F3" : "#F9FAFB"
 
@@ -42,7 +42,7 @@ Rectangle {
         MyMenuItem {
             Layout.fillWidth: true
             text: "多指标异常检测"
-            icon: "../../images/detect_m.svg"
+            icon: RESOURCE_PATH + "images/detect_m.svg"
             index: 3
             color: menus.currentIndex === index ? "#2474F5" : hovered ? "#2196F3" : "#F9FAFB"
 
@@ -54,7 +54,7 @@ Rectangle {
         MyMenuItem {
             Layout.fillWidth: true
             text: "单指标态势预测"
-            icon: "../../images/forecast_s.svg"
+            icon: RESOURCE_PATH + "images/forecast_s.svg"
             index: 4
             color: menus.currentIndex === index ? "#2474F5" : hovered ? "#2196F3" : "#F9FAFB"
 
@@ -66,7 +66,7 @@ Rectangle {
         MyMenuItem {
             Layout.fillWidth: true
             text: "多指标态势预测"
-            icon: "../../images/forecast_m.svg"
+            icon: RESOURCE_PATH + "images/forecast_m.svg"
             index: 5
             color: menus.currentIndex === index ? "#2474F5" : hovered ? "#2196F3" : "#F9FAFB"
 
@@ -79,7 +79,7 @@ Rectangle {
             visible: menus.isAdmin
             Layout.fillWidth: true
             text: "数据管理"
-            icon: "../../images/data.svg"
+            icon: RESOURCE_PATH + "images/data.svg"
             index: 6
             color: menus.currentIndex === index ? "#2474F5" : hovered ? "#2196F3" : "#F9FAFB"
 
@@ -92,7 +92,7 @@ Rectangle {
             visible: menus.isAdmin
             Layout.fillWidth: true
             text: "系统管理"
-            icon: "../../images/user.svg"
+            icon: RESOURCE_PATH + "images/user.svg"
             index: 7
             color: menus.currentIndex === index ? "#2474F5" : hovered ? "#2196F3" : "#F9FAFB"
 

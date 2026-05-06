@@ -1,6 +1,8 @@
 import datetime
+import os
 import sqlite3
 import hashlib
+import sys
 
 
 class AuthManager:
@@ -8,8 +10,18 @@ class AuthManager:
         self.db_path = db_path
         self._init_db()
 
+    def _get_connection(self):
+        if hasattr(sys, '_MEIPASS'):
+            # PyInstaller 打包后会创建临时文件夹
+            base_path = sys._MEIPASS
+        else:
+            # 开发环境
+            base_path = os.path.abspath(".")
+        path = os.path.join(base_path, self.db_path)
+        return sqlite3.connect(path, check_same_thread=False)
+
     def _init_db(self):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -47,7 +59,7 @@ class AuthManager:
         return hashlib.md5(password.encode()).hexdigest()
 
     def login(self, username, password):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         hashed = self.hash_password(password)
@@ -69,7 +81,7 @@ class AuthManager:
         return None
 
     def register(self, username, password, role="user"):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         # 管理员数量控制
@@ -100,7 +112,7 @@ class AuthManager:
             conn.close()
 
     def set_user_active(self, username, active):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         try:
@@ -116,7 +128,7 @@ class AuthManager:
             conn.close()
 
     def get_all_users(self):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         cursor.execute("""
@@ -128,7 +140,7 @@ class AuthManager:
         rows = cursor.fetchall()
         conn.close()
 
-        # 转换为字典列表（QML可识别）
+        # 转换为字典列表
         users = []
         for row in rows:
             users.append({
@@ -142,7 +154,7 @@ class AuthManager:
         return users
 
     def get_sub_admins(self, username):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         cursor.execute(
@@ -157,12 +169,12 @@ class AuthManager:
 
         for child in children:
             result.append(child)
-            result.extend(self.get_sub_admins(child))  # 🔥 递归
+            result.extend(self.get_sub_admins(child))
 
         return result
 
     def downgrade_admin(self, operator, target):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         # 检查权限
@@ -200,7 +212,7 @@ class AuthManager:
             conn.close()
 
     def upgrade_to_admin(self, operator, target):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         try:
@@ -224,7 +236,7 @@ class AuthManager:
             return self.downgrade_admin(operator, username)
 
     def change_user_active(self, username, active, operator):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_connection()
         cursor = conn.cursor()
 
         # 检查权限
@@ -240,7 +252,7 @@ class AuthManager:
         return self.set_user_active(username, active)
 
     def delete_user(self, username, operator):
-        conn = sqlite3.connect(self.db_path)
+        conn = self._get_connection()
         cursor = conn.cursor()
         try:
             cursor.execute(
@@ -253,7 +265,7 @@ class AuthManager:
                 return False
 
             try:
-                self.downgrade_admin(operator, username)    # 将该管理员的设置的管理员降级
+                self.downgrade_admin(operator, username)
                 cursor.execute("DELETE FROM users WHERE username=?", (username,))
                 conn.commit()
                 return True

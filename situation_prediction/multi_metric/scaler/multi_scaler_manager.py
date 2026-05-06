@@ -1,4 +1,5 @@
 import os
+import sys
 
 import joblib
 
@@ -14,7 +15,12 @@ class MultiScalerManager:
         return path
 
     def _path(self, table):
-        return os.path.join(self._dir(table), "multi_scaler.pkl")
+        base_path = os.path.abspath(".")
+        if hasattr(sys, '_MEIPASS'):
+            base_path = sys._MEIPASS
+        scaler_dir = os.path.join(self._dir(table), "multi_scaler.pkl")
+        path = os.path.join(base_path, scaler_dir)
+        return path
 
     def save(self, scaler, table):
         joblib.dump(scaler.state_dict(), self._path(table))

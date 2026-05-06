@@ -31,8 +31,16 @@ def main():
         dataManager
     )
 
+    path = os.path.abspath(".")
+    if hasattr(sys, '_MEIPASS'):
+        path = sys._MEIPASS
+    engine.rootContext().setContextProperty(
+        "RESOURCE_PATH",
+        "file:///" + os.path.join(path, "").replace("\\", "/")
+    )
+
     # 加载UI
-    engine.load("ui/Main.qml")
+    engine.load(os.path.join(path, "ui/Main.qml"))
 
     if not engine.rootObjects():
         sys.exit(-1)
